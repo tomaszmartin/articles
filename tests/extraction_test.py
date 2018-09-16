@@ -16,3 +16,9 @@ def test_head_extraction():
     sample = '<html><body><h1>head</h1></body></html>'
     result = extraction.extract_head(sample)
     assert result == 'head'
+
+
+def test_body_extraction():
+    sample = '<html><body><div class="article-main">body</div></body></html>'
+    result = extraction.extract_body(sample)
+    assert result == 'body'

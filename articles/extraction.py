@@ -16,4 +16,6 @@ def extract_head(content):
 
 
 def extract_body(content):
-    return None
+    soup = BeautifulSoup(content, 'lxml')
+    header = soup.find('div', {'class': 'article-main'})
+    return header.text
