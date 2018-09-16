@@ -1,4 +1,5 @@
 """Extracting articles from web pages."""
+from bs4 import BeautifulSoup
 
 
 def extract_article(content):
@@ -9,7 +10,9 @@ def extract_article(content):
 
 
 def extract_head(content):
-    return None
+    soup = BeautifulSoup(content, 'lxml')
+    header = soup.find('h1')
+    return header.text
 
 
 def extract_body(content):

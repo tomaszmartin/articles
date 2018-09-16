@@ -10,3 +10,9 @@ def test_articles_extraction(mock_body, mock_head):
     mock_body.return_value = 'body'
     result = extraction.extract_article('')
     assert result == ('head', 'body')
+
+
+def test_head_extraction():
+    sample = '<html><body><h1>head</h1></body></html>'
+    result = extraction.extract_head(sample)
+    assert result == 'head'
