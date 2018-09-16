@@ -1,4 +1,5 @@
 """Extracting articles from web pages."""
+import requests
 from bs4 import BeautifulSoup
 
 
@@ -10,12 +11,19 @@ def extract_article(content):
 
 
 def extract_head(content):
-    soup = BeautifulSoup(content, 'lxml')
+    soup = BeautifulSoup(content, 'html.parser')
     header = soup.find('h1')
     return header.text
 
 
 def extract_body(content):
-    soup = BeautifulSoup(content, 'lxml')
-    header = soup.find('div', {'class': 'article-main'})
-    return header.text
+    soup = BeautifulSoup(content, 'html.parser')
+    body = soup.find('div', {'class': 'article-main'})
+    return body.text
+
+
+if __name__ == '__main__':
+    uri = 'https://www.spidersweb.pl/2018/09/nintendo-switch-direct-wrzesien.html'
+    content = requests.get(uri).content
+    print(extract_head(content))
+    print(extract_body(content))
