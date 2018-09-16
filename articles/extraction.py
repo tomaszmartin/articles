@@ -1,9 +1,8 @@
-"""Extracting articles fromweb pages."""
-import requests
+"""Extracting articles from web pages."""
 
-def extract_article(uri):
+
+def extract_article(content):
     """Extract the title and content from the web page."""
-    content = requests.get(uri).content
     head = extract_head(content)
     body = extract_body(content)
     return head, body
