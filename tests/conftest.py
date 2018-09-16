@@ -16,7 +16,8 @@ def sample_html():
     <li>Regular list</li>
     </ul>
     
-    <p><a href="/"><img src="https://sample/img.jpg" alt="alt"/></a></p>
+    <p><img src="https://sample/img.jpg" alt="text"/></p>
+    <p><a href="/">link></a></p>
     
     </html>
     """
