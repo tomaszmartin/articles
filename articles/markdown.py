@@ -1,21 +1,20 @@
 """Module for converting html into markdown."""
-from bs4 import BeautifulSoup
+import re
 
 
 def find_images(content):
-    soup = BeautifulSoup(content, 'html.parser')
-    img = soup.find('img')
-    return f'![{img["alt"]}]({img["src"]})'
+    pattern = '<img[^>]+src="(.*)"[^>]+alt="(.*)"/>'
+    return re.sub(pattern, r"![\2](\1)", content)
 
 
 def find_links(content):
-    soup = BeautifulSoup(content, 'html.parser')
-    anchor = soup.find('a')
-    return f'[{anchor.text}]({anchor["href"]})'
+    pattern = '<a[^>]+href="(.*)">(.*)</a>'
+    return re.sub(pattern, r"[\2](\1)", content)
 
 
-def find_bold_text():
-    pass
+def find_bold_text(content):
+    pattern = '<b[^>]*>(.*)</b>'
+    return re.sub(pattern, r"**\1**", content)
 
 
 def find_italic_text():
