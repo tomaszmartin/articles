@@ -13,16 +13,25 @@ def find_links(content):
 
 
 def find_bold_text(content):
-    pattern = '<b[^>]*>(.*)</b>'
-    return re.sub(pattern, r"**\1**", content)
+    patterns = ['<b[^>]*>(.*)</b>', '<strong[^>]*>(.*)</strong>']
+    for pattern in patterns:
+        content = re.sub(pattern, r"**\1**", content)
+    return content
 
 
-def find_italic_text():
-    pass
+def find_italic_text(content):
+    patterns = ['<i[^>]*>(.*)</i>', '<em[^>]*>(.*)</em>']
+    for pattern in patterns:
+        content = re.sub(pattern, r"*\1*", content)
+    return content
 
 
-def find_headers():
-    pass
+def find_headers(content):
+    patterns = {'\n#': '<h1[^>]*>(.*)</h1>', '\n##': '<h2[^>]*>(.*)</h2>',
+                '\n###': '<h3[^>]*>(.*)</h3>', '\n####': '<h4[^>]*>(.*)</h4>'}
+    for mark, pattern in patterns.items():
+        content = re.sub(pattern, rf"{mark} \1\n", content)
+    return content
 
 
 def find_lists():
