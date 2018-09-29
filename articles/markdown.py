@@ -3,19 +3,26 @@ import re
 from urllib.parse import urlparse
 
 
-def parse_images(url, html):
+def get_domain(url):
     parsed = urlparse(url)
-    domain = f'{parsed.scheme}://{parsed.netloc}'
+    return f'{parsed.scheme}://{parsed.netloc}'
+
+
+def parse_images(url, html):
+    domain = get_domain(url)
     html = re.sub(r'src="/(.*?)"', rf'src="{domain}/\1"', html)
     html = re.sub(r'<img[^>]+src="(.*)"[^>]+alt="(.*)"/>',
                   r'![\2](\1)', html)
     return html
 
 
-def parse_links(content):
-    return re.sub(r'<a[^>]+href="(.*)">(.*)</a>',
+def parse_links(url, html):
+    domain = get_domain(url)
+    html = re.sub(r'href="/(.*?)"', rf'href="{domain}/\1"', html)
+    html = re.sub(r'<a[^>]+href="(.*)">(.*)</a>',
                   r'[\2](\1)',
-                  content)
+                  html)
+    return html
 
 
 def parse_bolds(content):

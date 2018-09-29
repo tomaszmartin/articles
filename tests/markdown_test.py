@@ -1,36 +1,50 @@
 from articles import markdown
 
 
+def test_domain():
+    url = 'https://sample.com/wtf'
+    assert markdown.get_domain(url) == 'https://sample.com'
+
+
 def test_markdown_image():
-    uri = 'https://sample.com/wtf'
+    url = 'https://sample.com/wtf'
     html = '<img src="https://sample.com/img.jpg" alt="text"/>'
-    result = markdown.parse_images(uri, html)
+    result = markdown.parse_images(url, html)
     md = '![text](https://sample.com/img.jpg)'
     assert result == md
 
 
 def test_markdown_image_no_domain():
-    uri = 'https://sample.com/wtf'
+    url = 'https://sample.com/wtf'
     html = '<img src="/img.jpg" alt="text"/>'
-    result = markdown.parse_images(uri, html)
+    result = markdown.parse_images(url, html)
     md = '![text](https://sample.com/img.jpg)'
     assert result == md
 
 
 def test_markdown_two_images():
-    uri = 'https://sample.com/wtf'
+    url = 'https://sample.com/wtf'
     html = '<img src="/1.jpg" alt="text1"/>\n' \
            '<img src="https://sample.org/2.jpg" alt="text2"/>'
-    result = markdown.parse_images(uri, html)
+    result = markdown.parse_images(url, html)
     md = '![text1](https://sample.com/1.jpg)\n' \
          '![text2](https://sample.org/2.jpg)'
     assert result == md
 
 
-def test_markdown_links():
+def test_markdown_link():
+    url = 'https://sample.com/wtf'
+    html = '<p>sample <a href="https://sample.com/">link</a></p>'
+    result = markdown.parse_links(url, html)
+    md = '<p>sample [link](https://sample.com/)</p>'
+    assert result == md
+
+
+def test_markdown_link_no_domain():
+    url = 'https://sample.com/wtf'
     html = '<p>sample <a href="/">link</a></p>'
-    result = markdown.parse_links(html)
-    md = '<p>sample [link](/)</p>'
+    result = markdown.parse_links(url, html)
+    md = '<p>sample [link](https://sample.com/)</p>'
     assert result == md
 
 
