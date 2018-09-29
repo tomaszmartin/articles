@@ -107,6 +107,8 @@ def test_full_markdown(sample_html):
                '# Header 1\n' \
                '## Header 2\n' \
                '### Header 3\n' \
+               'Regular line\n' \
+               'Another line\n' \
                'List:\n' \
                '\n' \
                '* **Bold list**\n' \
