@@ -1,6 +1,9 @@
 from unittest import mock
 
+import pytest
+
 from articles import extraction
+from articles.errors import HeaderNotFoundError, BodyNotFoundError
 
 
 @mock.patch('articles.extraction.extract_head')
@@ -12,13 +15,23 @@ def test_articles_extraction(mock_body, mock_head):
     assert result == ('head', 'body')
 
 
-def test_head_extraction():
-    sample = '<html><body><h1>head</h1></body></html>'
-    result = extraction.extract_head(sample)
-    assert result == 'head'
+def test_head_extraction(sample_headers):
+    for sample in sample_headers:
+        actual = extraction.extract_head(sample)
+        assert 'head' == actual
 
 
-def test_body_extraction():
-    sample = '<html><body><div class="article-main">body</div></body></html>'
-    result = extraction.extract_body(sample)
-    assert result == 'body'
+def test_empty_head_extraction():
+    with pytest.raises(HeaderNotFoundError):
+        extraction.extract_head('')
+
+
+def test_body_extraction(sample_bodies):
+    for sample in sample_bodies:
+        actual = extraction.extract_body(sample)
+        assert 'body' == actual
+
+
+def test_empty_body_extraction():
+    with pytest.raises(BodyNotFoundError):
+        extraction.extract_body('')
