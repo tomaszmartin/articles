@@ -32,19 +32,12 @@ def test_markdown_italic():
 def test_markdown_header():
     html = '<h1>h1</h1>'
     result = markdown.parse_headers(html)
-    md = '\n# h1\n'
+    md = '# h1'
     assert result == md
 
 
 def test_markdown_headers():
-    html = '<h1>h1</h1><h2>h2</h2>'
+    html = '<h1>h1</h1>\n<h2>h2</h2>'
     result = markdown.parse_headers(html)
-    md = '\n# h1\n\n## h2\n'
-    assert result == md
-
-
-def test_headers_add_newlines():
-    html = 'sample <h1>h1</h1> sth'
-    result = markdown.parse_headers(html)
-    md = 'sample \n# h1\n sth'
+    md = '# h1\n## h2'
     assert result == md
