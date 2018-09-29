@@ -41,3 +41,17 @@ def test_markdown_headers():
     result = markdown.parse_headers(html)
     md = '# h1\n## h2'
     assert result == md
+
+
+def test_markdown_unordered_lists():
+    html = '<ul><li>1</li><li>2</li><li>3</li></ul>'
+    result = markdown.parse_unordered_lists(html)
+    md = '* 1\n* 2\n* 3\n'
+    assert result == md
+
+
+def test_markdown_ordered_lists():
+    html = '<ul><li>1</li><li>2</li><li>3</li></ul>'
+    result = markdown.parse_ordered_lists(html)
+    md = '1. 1\n2. 2\n3. 3\n'
+    assert result == md

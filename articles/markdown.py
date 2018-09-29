@@ -3,39 +3,51 @@ import re
 
 
 def parse_images(content):
-    pattern = '<img[^>]+src="(.*)"[^>]+alt="(.*)"/>'
-    return re.sub(pattern, r'![\2](\1)', content)
+    return re.sub(r'<img[^>]+src="(.*)"[^>]+alt="(.*)"/>',
+                  r'![\2](\1)',
+                  content)
 
 
 def parse_links(content):
-    pattern = '<a[^>]+href="(.*)">(.*)</a>'
-    return re.sub(pattern, r'[\2](\1)', content)
+    return re.sub(r'<a[^>]+href="(.*)">(.*)</a>',
+                  r'[\2](\1)',
+                  content)
 
 
 def parse_bolds(content):
-    patterns = ['<b[^>]*>(.*)</b>', '<strong[^>]*>(.*)</strong>']
+    patterns = [r'<b[^>]*>(.*)</b>', r'<strong[^>]*>(.*)</strong>']
     for pattern in patterns:
         content = re.sub(pattern, r'**\1**', content)
     return content
 
 
 def parse_italics(content):
-    patterns = ['<i[^>]*>(.*)</i>', '<em[^>]*>(.*)</em>']
+    patterns = [r'<i[^>]*>(.*)</i>', r'<em[^>]*>(.*)</em>']
     for pattern in patterns:
         content = re.sub(pattern, r'*\1*', content)
     return content
 
 
 def parse_headers(content):
-    patterns = {'#': '<h1[^>]*>(.*)</h1>',
-                '##': '<h2[^>]*>(.*)</h2>',
-                '###': '<h3[^>]*>(.*)</h3>',
-                '####': '<h4[^>]*>(.*)</h4>'}
+    patterns = {'#': r'<h1[^>]*>(.*)</h1>',
+                '##': r'<h2[^>]*>(.*)</h2>',
+                '###': r'<h3[^>]*>(.*)</h3>',
+                '####': r'<h4[^>]*>(.*)</h4>'}
     for mark, pattern in patterns.items():
         content = re.sub(pattern, rf'{mark} \1', content)
     return content
 
 
-def find_lists():
-    pass
+def parse_unordered_lists(content):
+    content = re.sub(r'<ul[^>]*>(.*?)</ul>', r'\1', content)
+    content = re.sub(r'<li>(.*?)</li>', r'* \1\n', content)
+    return content
 
+
+def parse_ordered_lists(content):
+    content = re.sub(r'<ol[^>]*>(.*?)</ol>', r'\1', content)
+    elements = re.findall(r'<li>(.*?)</li>', content)
+    result = ''
+    for i, element in enumerate(elements, 1):
+        result += f'{i}. {element}\n'
+    return result
