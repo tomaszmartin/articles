@@ -87,14 +87,31 @@ def test_markdown_headers():
 
 
 def test_markdown_unordered_lists():
-    html = '<ul><li>1</li><li>2</li><li>3</li></ul>'
-    result = markdown.parse_unordered_lists(html)
-    md = '* 1\n* 2\n* 3\n'
-    assert result == md
+    html = '<ul>\n<li>1</li>\n<li>2</li>\n<li>3</li>\n</ul>'
+    actual = markdown.parse_unordered_lists(html)
+    expected = '\n* 1\n* 2\n* 3\n'
+    assert expected == actual
 
 
 def test_markdown_ordered_lists():
-    html = '<ul><li>1</li><li>2</li><li>3</li></ul>'
-    result = markdown.parse_ordered_lists(html)
-    md = '1. 1\n2. 2\n3. 3\n'
-    assert result == md
+    html = '<ol>\n<li>1</li>\n<li>2</li>\n<li>3</li>\n</ol>'
+    actual = markdown.parse_ordered_lists(html)
+    expected = '\n1. 1\n2. 2\n3. 3\n'
+    assert expected == actual
+
+
+def test_full_markdown(sample_html):
+    url = 'https://sample.com/wtf'
+    actual = markdown.parse(url, sample_html)
+    expected = '**Bold text.**\n' \
+               '# Header 1\n' \
+               '## Header 2\n' \
+               '### Header 3\n' \
+               'List:\n' \
+               '\n' \
+               '* **Bold list**\n' \
+               '* Regular list\n' \
+               '\n' \
+               '![text](https://sample.com/img.jpg)\n' \
+               '[link](https://sample.com/)\n'
+    assert expected == actual
