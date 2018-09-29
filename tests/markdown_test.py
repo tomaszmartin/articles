@@ -48,6 +48,16 @@ def test_markdown_link_no_domain():
     assert result == md
 
 
+def test_markdown_links():
+    url = 'https://sample.com/wtf'
+    html = '<p>sample <a href="/">link1</a></p>\n' \
+           '<a href="https://sample.org/">link2</a></p>'
+    result = markdown.parse_links(url, html)
+    md = '<p>sample [link1](https://sample.com/)</p>\n' \
+         '[link2](https://sample.org/)</p>'
+    assert result == md
+
+
 def test_markdown_bold():
     html = '<div>sample <b>bold</b> <strong> again </strong></div>'
     result = markdown.parse_bolds(html)
