@@ -1,11 +1,15 @@
 """Module for converting html into markdown."""
 import re
+from urllib.parse import urlparse
 
 
-def parse_images(content):
-    return re.sub(r'<img[^>]+src="(.*)"[^>]+alt="(.*)"/>',
-                  r'![\2](\1)',
-                  content)
+def parse_images(url, html):
+    parsed = urlparse(url)
+    domain = f'{parsed.scheme}://{parsed.netloc}'
+    html = re.sub(r'src="/(.*?)"', rf'src="{domain}/\1"', html)
+    html = re.sub(r'<img[^>]+src="(.*)"[^>]+alt="(.*)"/>',
+                  r'![\2](\1)', html)
+    return html
 
 
 def parse_links(content):

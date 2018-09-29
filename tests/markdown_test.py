@@ -1,10 +1,29 @@
 from articles import markdown
 
 
-def test_markdown_images():
-    html = '<img src="https://sample/img.jpg" alt="text"/>'
-    result = markdown.parse_images(html)
-    md = '![text](https://sample/img.jpg)'
+def test_markdown_image():
+    uri = 'https://sample.com/wtf'
+    html = '<img src="https://sample.com/img.jpg" alt="text"/>'
+    result = markdown.parse_images(uri, html)
+    md = '![text](https://sample.com/img.jpg)'
+    assert result == md
+
+
+def test_markdown_image_no_domain():
+    uri = 'https://sample.com/wtf'
+    html = '<img src="/img.jpg" alt="text"/>'
+    result = markdown.parse_images(uri, html)
+    md = '![text](https://sample.com/img.jpg)'
+    assert result == md
+
+
+def test_markdown_two_images():
+    uri = 'https://sample.com/wtf'
+    html = '<img src="/1.jpg" alt="text1"/>\n' \
+           '<img src="https://sample.org/2.jpg" alt="text2"/>'
+    result = markdown.parse_images(uri, html)
+    md = '![text1](https://sample.com/1.jpg)\n' \
+         '![text2](https://sample.org/2.jpg)'
     assert result == md
 
 
