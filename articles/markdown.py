@@ -13,9 +13,9 @@ def get_domain(url):
 
 def parse_images(url, html):
     domain = get_domain(url)
-    html = re.sub(r'src="/(.*?)"', rf'src="{domain}/\1"', html)
-    html = re.sub(r'<img[^>]+src="([^"]+?)"[^>]*alt="([^"]+?)"[^>]*/>',
-                  r'![\2](\1)', html)
+    html = re.sub(r'src=(["\'])/(.*?)(\1)', rf'src="{domain}/\2"', html)
+    img = re.compile(r'<img[^>]+src=(["\'])([^\1]+?)(\1)[^>]*alt=(["\'])([^\3]+?)(\3)[^>]*/>')
+    html = re.sub(img, r'![\5](\2)', html)
     return html
 
 
