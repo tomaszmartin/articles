@@ -14,13 +14,15 @@ def get_domain(url):
 def parse_images(url, html):
     domain = get_domain(url)
     html = re.sub(r'src=(["\'])/(.*?)(\1)', rf'src="{domain}/\2"', html)
-    img = re.compile(r'<img[^>]+src=(["\'])([^\1]+?)(\1)[^>]*alt=(["\'])([^\3]+?)(\3)[^>]*/>')
+    img = re.compile(r'<img[^>]+src=(["\'])([^\1]*?)(\1)[^>]*alt=(["\'])([^\3]*?)(\3)[^>]*/?>')
     html = re.sub(img, r'![\5](\2)', html)
     return html
 
 
 def parse_links(url, html):
     domain = get_domain(url)
+    # Remove empty links
+    html = re.sub(r'(<a[^>]*><(\w+)[^>]*></(\2)></a>)', r'', html)
     html = re.sub(r'href="/(.*?)"', rf'href="{domain}/\1"', html)
     anchor = re.compile(r'<a[^>]*href="(.*?)"[^>]*>([^<]*?)</a>')
     if re.search(anchor, html):
@@ -71,10 +73,14 @@ def parse_ordered_lists(html):
     return html
 
 
-def remove_empty_tags(html):
+def remove_script_tags(html):
     # Remove scripts with content
-    script = re.compile(r'<script[^>]*>(\s?)(.*?)</script[^>]*>', flags)
+    script = re.compile(r'<script[^>]*>(.*?)</script[^>]*>', flags)
     html = re.sub(script, r'', html)
+    return html
+
+
+def remove_empty_tags(html):
     # Remove other tags and extract their content
     pattern = re.compile(r'<(\w+)[^>]*>(\s?)(.*?)</(\1)[^>]*>', flags)
     if re.search(pattern, html):
@@ -83,19 +89,44 @@ def remove_empty_tags(html):
     return html
 
 
-def remove_excessive_newline(html):
-    script = re.compile(r'\n\n+', flags)
-    html = re.sub(script, r'\n\n', html)
+def remove_single_tags(html):
+    # Remove other tags and extract their content
+    pattern = re.compile(r'<(\w+)[^>]*>\s*', flags)
+    html = re.sub(pattern, r'', html)
+    pattern = re.compile(r'</(\w+)[^>]*>\s*', flags)
+    html = re.sub(pattern, r'', html)
+    return html
+
+
+def remove_excessive_whitespace(html):
+    script = re.compile(r'(\s\s)(\s*)([^\s])', re.MULTILINE)
+    html = re.sub(script, r'\n\3', html)
+    return html
+
+
+def remove_comments(html):
+    comment = re.compile(r'<!--(.*?)-->', flags)
+    html = re.sub(comment, r'', html)
+    return html
+
+
+def remove_captions(html):
+    caption = re.compile(r'<figcaption[^>]*>(.*?)</figcaption[^>]*>', flags)
+    html = re.sub(caption, r'', html)
     return html
 
 
 def parse(url, html):
+    html = remove_script_tags(html)
     html = parse_images(url, html)
     html = parse_bolds(html)
     html = parse_headers(html)
     html = parse_unordered_lists(html)
     html = parse_ordered_lists(html)
     html = parse_links(url, html)
+    html = remove_comments(html)
+    html = remove_captions(html)
     html = remove_empty_tags(html)
-    html = remove_excessive_newline(html)
+    html = remove_excessive_whitespace(html)
+    html = remove_single_tags(html)
     return html

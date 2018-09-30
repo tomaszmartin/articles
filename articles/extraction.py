@@ -48,7 +48,7 @@ def extract_body(html):
 
 
 if __name__ == '__main__':
-    url = 'https://www.spidersweb.pl/2018/09/iphone-xs-opinie-wrazenia.html'
+    url = 'https://www.cultofmac.com/580084/iphone-charging-problem-ios-12-lightning-cable/'
     resp = requests.get(url)
     html = extract_body(resp.text)
     md = markdown.parse(url, html)

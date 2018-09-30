@@ -43,6 +43,15 @@ def test_markdown_link():
     assert result == md
 
 
+def test_markdown_hash_link():
+    url = 'https://sample.com/wtf'
+    html = '<a href="#disqus_thread"><span></span></a>' \
+           '<a href="https://www.cultofmac.com/1">Leave a comment</a>'
+    result = markdown.parse_links(url, html)
+    md = '[Leave a comment](https://www.cultofmac.com/1)'
+    assert result == md
+
+
 def test_markdown_link_no_domain():
     url = 'https://sample.com/wtf'
     html = '<p>sample <a href="/">link</a></p>'
@@ -90,7 +99,7 @@ def test_markdown_headers():
 
 
 def test_markdown_unordered_lists():
-    html = '<ul>\n<li>1</li>\n<li>2</li>\n<li>3</li>\n</ul>'
+    html = '<ul>\n<li>1</li>\n<li></li>\n<li>2</li>\n<li>3</li>\n</ul>'
     actual = markdown.parse_unordered_lists(html)
     expected = '\n* 1\n* 2\n* 3\n'
     assert expected == actual
