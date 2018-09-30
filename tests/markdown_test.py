@@ -8,9 +8,12 @@ def test_domain():
 
 def test_markdown_image():
     url = 'https://sample.com/wtf'
-    html = '<img src="https://sample.com/img.jpg" alt="text"/>'
+    html = '<img src="https://ocs-pl.oktawave.com/iphone.jpg" ' \
+           'alt="iPhone XS jest nudny jak flaki z olejem" ' \
+           'data-pagespeed-url-hash=2676138789 ' \
+           'onload="pagespeed()"/>'
     result = markdown.parse_images(url, html)
-    md = '![text](https://sample.com/img.jpg)'
+    md = '![iPhone XS jest nudny jak flaki z olejem](https://ocs-pl.oktawave.com/iphone.jpg)'
     assert result == md
 
 
@@ -50,11 +53,11 @@ def test_markdown_link_no_domain():
 
 def test_markdown_links():
     url = 'https://sample.com/wtf'
-    html = '<p>sample <a href="/">link1</a></p>\n' \
-           '<a href="https://sample.org/">link2</a></p>'
+    html = '<a href="https://sample.com/first">first</a>' \
+           '<a href="https://sample.com/second">second</a>'
     result = markdown.parse_links(url, html)
-    md = '<p>sample [link1](https://sample.com/)</p>\n' \
-         '[link2](https://sample.org/)</p>'
+    md = '[first](https://sample.com/first)' \
+         '[second](https://sample.com/second)'
     assert result == md
 
 

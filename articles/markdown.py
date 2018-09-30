@@ -3,6 +3,9 @@ import re
 from urllib.parse import urlparse
 
 
+flags = re.MULTILINE | re.IGNORECASE | re.DOTALL
+
+
 def get_domain(url):
     parsed = urlparse(url)
     return f'{parsed.scheme}://{parsed.netloc}'
@@ -11,7 +14,7 @@ def get_domain(url):
 def parse_images(url, html):
     domain = get_domain(url)
     html = re.sub(r'src="/(.*?)"', rf'src="{domain}/\1"', html)
-    html = re.sub(r'<img[^>]+src="(.*)"[^>]+alt="(.*)"/>',
+    html = re.sub(r'<img[^>]+src="([^"]+?)"[^>]*alt="([^"]+?)"[^>]*/>',
                   r'![\2](\1)', html)
     return html
 
@@ -19,9 +22,10 @@ def parse_images(url, html):
 def parse_links(url, html):
     domain = get_domain(url)
     html = re.sub(r'href="/(.*?)"', rf'href="{domain}/\1"', html)
-    html = re.sub(r'<a[^>]+href="(.*)">(.*)</a>',
-                  r'[\2](\1)',
-                  html)
+    anchor = re.compile(r'<a[^>]*href="(.*?)"[^>]*>([^<]*?)</a>')
+    if re.search(anchor, html):
+        html = re.sub(anchor, r'[\2](\1)', html)
+        return parse_links(url, html)
     return html
 
 
@@ -50,7 +54,6 @@ def parse_headers(content):
 
 
 def parse_unordered_lists(html):
-    flags = re.MULTILINE | re.IGNORECASE | re.DOTALL
     ul = re.compile(r'<ul[^>]*>(.*?)</ul>', flags)
     li = re.compile(r'<li[^>]*>(.*?)</li>', flags)
     html = re.sub(ul, r'\1', html)
@@ -59,7 +62,6 @@ def parse_unordered_lists(html):
 
 
 def parse_ordered_lists(html):
-    flags = re.MULTILINE | re.IGNORECASE | re.DOTALL
     ol = re.compile(r'<ol[^>]*>(.*?)</ol>', flags)
     if re.match(ol, html):
         html = re.sub(ol, r'\1', html)
@@ -70,7 +72,6 @@ def parse_ordered_lists(html):
 
 
 def remove_empty_tags(html):
-    flags = re.MULTILINE | re.IGNORECASE | re.DOTALL
     # Remove scripts with content
     script = re.compile(r'<script[^>]*>(\s?)(.*?)</script[^>]*>', flags)
     html = re.sub(script, r'', html)
@@ -83,18 +84,17 @@ def remove_empty_tags(html):
 
 
 def remove_excessive_newline(html):
-    flags = re.MULTILINE | re.IGNORECASE | re.DOTALL
     script = re.compile(r'\n\n+', flags)
     html = re.sub(script, r'\n\n', html)
     return html
 
 
 def parse(url, html):
+    html = parse_images(url, html)
     html = parse_bolds(html)
     html = parse_headers(html)
     html = parse_unordered_lists(html)
     html = parse_ordered_lists(html)
-    html = parse_images(url, html)
     html = parse_links(url, html)
     html = remove_empty_tags(html)
     html = remove_excessive_newline(html)

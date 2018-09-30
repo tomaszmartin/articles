@@ -37,7 +37,7 @@ def extract_body(html):
                 r'<div[^>]*class="pageContent"[^>]*>(.*)</div>',
                 r'<div[^>]*itemprop="articleBody"[^>]*>(.*)</div>',
                 r'<div[^>]*class="post-body"[^>]*>(.*)</div>',
-                r'<article[^>]*>(.*)</article>']
+                r'<article[^>]*>(.*)</article[^>]*>']
     for pattern in patterns:
         article = re.compile(pattern, FLAGS)
         body = re.search(article, html)
@@ -50,6 +50,6 @@ def extract_body(html):
 if __name__ == '__main__':
     url = 'https://www.spidersweb.pl/2018/09/iphone-xs-opinie-wrazenia.html'
     resp = requests.get(url)
-    body = extract_body(resp.text)
-    md = markdown.parse(url, body)
+    html = extract_body(resp.text)
+    md = markdown.parse(url, html)
     print(md)
