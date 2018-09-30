@@ -32,10 +32,3 @@ def sample_bodies():
               '<html><body><div class="post-body">body</div></body></html>',
               '<html><body><article>body</article></body></html>']
     return bodies
-
-
-@pytest.fixture
-def sample_headers():
-    headers = ['<html><body><h1>head</h1></body></html>',
-               '<html><body><header>head</header></body></html>']
-    return headers

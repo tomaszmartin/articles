@@ -4,7 +4,6 @@ import re
 import requests
 import tomd as tomd
 
-from articles import markdown
 from bs4 import BeautifulSoup
 from articles.errors import BodyNotFoundError, HeaderNotFoundError
 
@@ -18,34 +17,49 @@ def extract_article(html):
     return head, body
 
 
+def to_markdown(html):
+    md = tomd.Tomd(html).markdown
+    # Fix img formatting
+    img = re.compile(r'\[<img(.*?)alt="(.*?)"[^>]*>\]')
+    md = re.sub(img, r'![\2]', md)
+    return md
+
+
 def extract_head(html):
     soup = BeautifulSoup(html, 'html.parser')
-    selectors = [{'element': 'h1', 'condition': None},
-                 {'element': 'header', 'condition': None}]
+    selectors = ['h1', 'header']
     for selector in selectors:
-        head = soup.find(selector['element'], selector['condition'])
-        if head:
-            return head.prettify()
+        heads = soup.select(selector)
+        for head in heads:
+            if head:
+                return f'{head}'
 
     raise HeaderNotFoundError
 
 
 def extract_body(html):
     soup = BeautifulSoup(html, 'html.parser')
-    selectors = ['article', 'div[class*="article"]',
-                 'div[class*="pageContent"]', 'div[class*="post-body"]',
-                 'div[class*="container"]', 'div[class*="content"]']
+    selectors = ['article', 'div[class*="article"]', 'section[class*="article"]',
+                 'div[class*="pageContent"]', 'section[class*="pageContent"]',
+                 'div[class*="post-body"]', 'div[class*="container"]',
+                 'div[itemprop*="articleBody"]', 'div[class*="content"]']
+    results = []
     for selector in selectors:
-        body = soup.select(selector)
-        if body:
-            return f'{body}'
+        bodies = soup.select(selector)
+        for body in bodies:
+            if body:
+                results.append(body.decode_contents())
+    if results:
+        # Take the longest result
+        return max(results, key=len)
 
     raise BodyNotFoundError
 
 
 if __name__ == '__main__':
-    url = 'http://wiadomosci.gazeta.pl/wiadomosci/7,114881,23986910,indonezja-po-przejsciu-tsunami-zdesperowani-ludzie-pladruja.html'
+    url = 'https://www.spidersweb.pl/2018/09/iphone-xs-opinie-wrazenia.html'
     resp = requests.get(url)
     html = extract_body(resp.text)
-    md = markdown.parse(url, html)
-    print(md)
+    text = to_markdown(html)
+    print(text)
+

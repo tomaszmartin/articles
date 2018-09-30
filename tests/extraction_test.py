@@ -15,10 +15,10 @@ def test_articles_extraction(mock_body, mock_head):
     assert result == ('head', 'body')
 
 
-def test_head_extraction(sample_headers):
-    for sample in sample_headers:
-        actual = extraction.extract_head(sample)
-        assert 'head' == actual
+def test_head_extraction():
+    sample = '<html><body><h1>head</h1></body></html>'
+    actual = extraction.extract_head(sample)
+    assert '<h1>head</h1>' == actual
 
 
 def test_empty_head_extraction():
