@@ -2,6 +2,7 @@
 import re
 from urllib.parse import urlparse
 
+from bs4 import BeautifulSoup
 
 flags = re.MULTILINE | re.IGNORECASE | re.DOTALL
 
@@ -14,7 +15,7 @@ def get_domain(url):
 def parse_images(url, html):
     domain = get_domain(url)
     html = re.sub(r'src=(["\'])/(.*?)(\1)', rf'src="{domain}/\2"', html)
-    img = re.compile(r'<img[^>]+src=(["\'])([^\1]*?)(\1)[^>]*alt=(["\'])([^\3]*?)(\3)[^>]*/?>')
+    img = re.compile(r'<img[^>]+src=(["\'])([^\1]*?)(\1)[^>]*(alt=(["\'])([^\3]*?)(\3))?[^>]*/?>')
     html = re.sub(img, r'![\5](\2)', html)
     return html
 
@@ -110,6 +111,17 @@ def remove_comments(html):
     return html
 
 
+def remove_ads(html):
+    soup = BeautifulSoup(html, 'html.parser')
+    ads = soup.find_all('div', {'class': 'advert'})
+    for ad in ads:
+        ad.decompose()
+    ads = soup.find_all('div', {'class': 'adsense'})
+    for ad in ads:
+        ad.decompose()
+    return soup.prettify()
+
+
 def remove_captions(html):
     caption = re.compile(r'<figcaption[^>]*>(.*?)</figcaption[^>]*>', flags)
     html = re.sub(caption, r'', html)
@@ -126,6 +138,7 @@ def parse(url, html):
     html = parse_links(url, html)
     html = remove_comments(html)
     html = remove_captions(html)
+    html = remove_ads(html)
     html = remove_empty_tags(html)
     html = remove_excessive_whitespace(html)
     html = remove_single_tags(html)
