@@ -1,6 +1,9 @@
 """Extracting articles from web pages."""
 import re
 
+import requests
+
+from articles import markdown
 from articles.errors import BodyNotFoundError, HeaderNotFoundError
 
 FLAGS = re.MULTILINE | re.IGNORECASE | re.DOTALL
@@ -42,3 +45,11 @@ def extract_body(html):
             return body.groups()[0]
 
     raise BodyNotFoundError
+
+
+if __name__ == '__main__':
+    url = 'https://www.spidersweb.pl/2018/09/iphone-xs-opinie-wrazenia.html'
+    resp = requests.get(url)
+    body = extract_body(resp.text)
+    md = markdown.parse(url, body)
+    print(md)

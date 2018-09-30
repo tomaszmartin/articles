@@ -71,10 +71,21 @@ def parse_ordered_lists(html):
 
 def remove_empty_tags(html):
     flags = re.MULTILINE | re.IGNORECASE | re.DOTALL
+    # Remove scripts with content
+    script = re.compile(r'<script[^>]*>(\s?)(.*?)</script[^>]*>', flags)
+    html = re.sub(script, r'', html)
+    # Remove other tags and extract their content
     pattern = re.compile(r'<(\w+)[^>]*>(\s?)(.*?)</(\1)[^>]*>', flags)
     if re.search(pattern, html):
         html = re.sub(pattern, r'\3', html)
         return remove_empty_tags(html)
+    return html
+
+
+def remove_excessive_newline(html):
+    flags = re.MULTILINE | re.IGNORECASE | re.DOTALL
+    script = re.compile(r'\n\n+', flags)
+    html = re.sub(script, r'\n\n', html)
     return html
 
 
@@ -86,4 +97,5 @@ def parse(url, html):
     html = parse_images(url, html)
     html = parse_links(url, html)
     html = remove_empty_tags(html)
+    html = remove_excessive_newline(html)
     return html
