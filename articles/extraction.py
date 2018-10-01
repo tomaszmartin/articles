@@ -2,7 +2,6 @@
 import re
 
 import requests
-import tomd as tomd
 
 from bs4 import BeautifulSoup
 
@@ -17,11 +16,6 @@ def extract_article(html):
     head = extract_head(html)
     body = extract_body(html)
     return head, body
-
-
-def to_markdown(html):
-    md = tomd.Tomd(html).markdown
-    return md
 
 
 def extract_head(html):
@@ -55,9 +49,20 @@ def extract_body(html):
     raise BodyNotFoundError
 
 
+def clean_body(html):
+    soup = BeautifulSoup(html, 'html.parser')
+    to_remove = ['div[class*="footer"]']
+    for selector in to_remove:
+        for item in soup.select(selector):
+            item.decompose()
+    return soup.decode_contents()
+
+
 if __name__ == '__main__':
-    url = 'https://antyweb.pl/kler-online-showmax-premiera-dvd-bluray/'
+    url = 'https://opinie.wp.pl/kazmierz-pawlak-nas-bawil-a-andrzej-duda-coraz-czesciej-po-prostu-przeraza-6301238461597825a'
     resp = requests.get(url)
     html = extract_body(resp.text)
+    html = clean_body(html)
     md = markdown.parse(url, html)
+    print(md)
 

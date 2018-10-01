@@ -36,9 +36,10 @@ def parse_links(url, html):
 
 
 def parse_bolds(content):
-    patterns = [r'<b[^>]*>(.*)</b>', r'<strong[^>]*>(.*)</strong>']
+    patterns = [r'<b[^>]*>([^<]*)</b>', r'<strong[^>]*>([^<]*)</strong>']
     for pattern in patterns:
-        content = re.sub(pattern, r'**\1**', content)
+        patt = re.compile(pattern, flags)
+        content = re.sub(patt, r'**\1**', content)
     return content
 
 
@@ -82,6 +83,8 @@ def remove_script_tags(html):
     # Remove scripts with content
     script = re.compile(r'<script[^>]*>(.*?)</script[^>]*>', flags)
     html = re.sub(script, r'', html)
+    script = re.compile(r'<style[^>]*>(.*?)</style[^>]*>', flags)
+    html = re.sub(script, r'', html)
     return html
 
 
@@ -124,13 +127,7 @@ def remove_captions(html):
 def parse(url, html):
     html = remove_script_tags(html)
     html = parse_images(url, html)
-    print('-----------------------------')
-    print(html)
     html = parse_links(url, html)
-    print('-----------------------------')
-    print(html)
-
-    print('-----------------------------')
     html = parse_bolds(html)
     html = parse_headers(html)
     html = parse_unordered_lists(html)
