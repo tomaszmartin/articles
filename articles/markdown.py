@@ -1,0 +1,137 @@
+
+"""Module for converting html into markdown."""
+import re
+from urllib.parse import urlparse
+
+
+flags = re.MULTILINE | re.IGNORECASE | re.DOTALL
+
+
+def get_domain(url):
+    parsed = urlparse(url)
+    return f'{parsed.scheme}://{parsed.netloc}'
+
+
+def parse_images(url, html):
+    domain = get_domain(url)
+    html = re.sub(r'src=(["\'])/(.*?)(\1)', rf'src="{domain}/\2"', html)
+    img = re.compile(r'<img[^>]+src=(["\'])([^\1]*?)(\1)[^>]*alt=(["\'])([^\3]*?)(\3)[^>]*/?>')
+    html = re.sub(img, r'![\5](\2)\n', html)
+    img = re.compile(r'<img[^>]+alt=(["\'])([^\1]*?)(\1)[^>]*src=(["\'])([^\3]*?)(\3)[^>]*/?>')
+    html = re.sub(img, r'![\5](\2)\n', html)
+    return html
+
+
+def parse_links(url, html):
+    domain = get_domain(url)
+    # Remove empty links
+    html = re.sub(r'(<a[^>]*><(\w+)[^>]*></(\2)></a>)', r'', html)
+    html = re.sub(r'href="/(.*?)"', rf'href="{domain}/\1"', html)
+    anchor = re.compile(r'<a[^>]*href=(["\'])([^\1]*?)(\1)[^>]*>([^<]*?)</a>')
+    if re.search(anchor, html):
+        html = re.sub(anchor, r'[\4](\2)', html)
+        return parse_links(url, html)
+    return html
+
+
+def parse_bolds(content):
+    patterns = [r'<b[^>]*>(.*)</b>', r'<strong[^>]*>(.*)</strong>']
+    for pattern in patterns:
+        content = re.sub(pattern, r'**\1**', content)
+    return content
+
+
+def parse_italics(content):
+    patterns = [r'<i[^>]*>(.*)</i>', r'<em[^>]*>(.*)</em>']
+    for pattern in patterns:
+        content = re.sub(pattern, r'*\1*', content)
+    return content
+
+
+def parse_headers(content):
+    patterns = {'#': r'<h1[^>]*>(\s*)?(.*?)</h1>',
+                '##': r'<h2[^>]*>(\s*)?(.*?)</h2>',
+                '###': r'<h3[^>]*>(\s*)?(.*?)</h3>',
+                '####': r'<h4[^>]*>(\s*)?(.*?)</h4>'}
+    for mark, pattern in patterns.items():
+        patt = re.compile(pattern, flags)
+        content = re.sub(patt, rf'{mark} \2', content)
+    return content
+
+
+def parse_unordered_lists(html):
+    ul = re.compile(r'<ul[^>]*>(.*?)</ul>', flags)
+    li = re.compile(r'<li[^>]*>(.*?)</li>', flags)
+    html = re.sub(ul, r'\1', html)
+    html = re.sub(li, r'* \1', html)
+    return html
+
+
+def parse_ordered_lists(html):
+    ol = re.compile(r'<ol[^>]*>(.*?)</ol>', flags)
+    if re.match(ol, html):
+        html = re.sub(ol, r'\1', html)
+        elements = re.findall(r'<li>(.*?)</li>', html)
+        for i, element in enumerate(elements, 1):
+            html = html.replace(f'<li>{element}</li>', f'{i}. {element}')
+    return html
+
+
+def remove_script_tags(html):
+    # Remove scripts with content
+    script = re.compile(r'<script[^>]*>(.*?)</script[^>]*>', flags)
+    html = re.sub(script, r'', html)
+    return html
+
+
+def remove_empty_tags(html):
+    # Remove other tags and extract their content
+    pattern = re.compile(r'<(\w+)[^>]*>(\s?)(.*?)</(\1)[^>]*>', flags)
+    if re.search(pattern, html):
+        html = re.sub(pattern, r'\3', html)
+        return remove_empty_tags(html)
+    return html
+
+
+def remove_single_tags(html):
+    # Remove other tags and extract their content
+    pattern = re.compile(r'<(\w+)[^>]*>\s*')
+    html = re.sub(pattern, r'', html)
+    pattern = re.compile(r'</(\w+)[^>]*>\s*', flags)
+    html = re.sub(pattern, r'', html)
+    return html
+
+
+def remove_excessive_whitespace(html):
+    script = re.compile(r'(\s\s)(\s*)([^\s])', re.MULTILINE)
+    html = re.sub(script, r'\n\n\3', html)
+    return html
+
+
+def remove_comments(html):
+    comment = re.compile(r'<!--(.*?)-->', flags)
+    html = re.sub(comment, r'', html)
+    return html
+
+
+def remove_captions(html):
+    caption = re.compile(r'<figcaption[^>]*>(.*?)</figcaption[^>]*>', flags)
+    html = re.sub(caption, r'', html)
+    return html
+
+
+def parse(url, html):
+    html = remove_script_tags(html)
+    html = parse_images(url, html)
+    html = parse_links(url, html)
+    html = parse_bolds(html)
+    html = parse_headers(html)
+    html = parse_unordered_lists(html)
+    html = parse_ordered_lists(html)
+    html = remove_comments(html)
+    html = remove_captions(html)
+    html = remove_single_tags(html)
+    html = remove_empty_tags(html)
+    html = remove_excessive_whitespace(html)
+    print(html)
+    return html

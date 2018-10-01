@@ -5,6 +5,8 @@ import requests
 import tomd as tomd
 
 from bs4 import BeautifulSoup
+
+from articles import markdown
 from articles.errors import BodyNotFoundError, HeaderNotFoundError
 
 FLAGS = re.MULTILINE | re.IGNORECASE | re.DOTALL
@@ -19,9 +21,6 @@ def extract_article(html):
 
 def to_markdown(html):
     md = tomd.Tomd(html).markdown
-    # Fix img formatting
-    img = re.compile(r'\[<img(.*?)alt="(.*?)"[^>]*>\]')
-    md = re.sub(img, r'![\2]', md)
     return md
 
 
@@ -57,9 +56,8 @@ def extract_body(html):
 
 
 if __name__ == '__main__':
-    url = 'https://www.spidersweb.pl/2018/09/iphone-xs-opinie-wrazenia.html'
+    url = 'https://antyweb.pl/kler-online-showmax-premiera-dvd-bluray/'
     resp = requests.get(url)
     html = extract_body(resp.text)
-    text = to_markdown(html)
-    print(text)
+    md = markdown.parse(url, html)
 
