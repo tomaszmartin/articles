@@ -51,7 +51,9 @@ def extract_body(html):
 
 def clean_body(html):
     soup = BeautifulSoup(html, 'html.parser')
-    to_remove = ['div[class*="footer"]']
+    to_remove = ['div[class*="footer"]', 'div[class*="social-container"]',
+                 'div[class*="Left"]', 'div[class*="Share"]',
+                 'aside', 'nav', 'footer', 'div[class*="embed"]']
     for selector in to_remove:
         for item in soup.select(selector):
             item.decompose()
@@ -59,7 +61,7 @@ def clean_body(html):
 
 
 if __name__ == '__main__':
-    url = 'https://opinie.wp.pl/kazmierz-pawlak-nas-bawil-a-andrzej-duda-coraz-czesciej-po-prostu-przeraza-6301238461597825a'
+    url = 'https://www.cultofmac.com/580394/apple-press-event-october-2018-reasons/'
     resp = requests.get(url)
     html = extract_body(resp.text)
     html = clean_body(html)
