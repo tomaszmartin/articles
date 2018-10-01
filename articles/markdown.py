@@ -16,9 +16,9 @@ def parse_images(url, html):
     domain = get_domain(url)
     html = re.sub(r'src=(["\'])/(.*?)(\1)', rf'src="{domain}/\2"', html)
     img = re.compile(r'<img[^>]+src=(["\'])([^\1]*?)(\1)[^>]*alt=(["\'])([^\3]*?)(\3)[^>]*/?>')
-    html = re.sub(img, r'![\5](\2)\n', html)
+    html = re.sub(img, r'![\5](\2)', html)
     img = re.compile(r'<img[^>]+alt=(["\'])([^\1]*?)(\1)[^>]*src=(["\'])([^\3]*?)(\3)[^>]*/?>')
-    html = re.sub(img, r'![\5](\2)\n', html)
+    html = re.sub(img, r'![\5](\2)', html)
     return html
 
 
@@ -27,10 +27,11 @@ def parse_links(url, html):
     # Remove empty links
     html = re.sub(r'(<a[^>]*><(\w+)[^>]*></(\2)></a>)', r'', html)
     html = re.sub(r'href="/(.*?)"', rf'href="{domain}/\1"', html)
-    anchor = re.compile(r'<a[^>]*href=(["\'])([^\1]*?)(\1)[^>]*>([^<]*?)</a>')
-    if re.search(anchor, html):
-        html = re.sub(anchor, r'[\4](\2)', html)
-        return parse_links(url, html)
+    parsed_img = r'(!\[([^\]]+)\]\(([^\)]*)\))'
+    anchor_with_img = re.compile(rf'<a[^>]*href="([^"]*?)"[^>]*>{parsed_img}([^<]*)</a>')
+    html = re.sub(anchor_with_img, r'[![\5](\3)](\1)', html)
+    anchor = re.compile(r'<a[^>]*href="([^"]*?)"[^>]*>([^<]*?)</a>')
+    html = re.sub(anchor, r'[\2](\1)', html)
     return html
 
 
@@ -95,9 +96,9 @@ def remove_empty_tags(html):
 
 def remove_single_tags(html):
     # Remove other tags and extract their content
-    pattern = re.compile(r'<(\w+)[^>]*>\s*')
+    pattern = re.compile(r'<(\w+)[^>]*>[^\S\n]*')
     html = re.sub(pattern, r'', html)
-    pattern = re.compile(r'</(\w+)[^>]*>\s*', flags)
+    pattern = re.compile(r'</(\w+)[^>]*>[^\S\n]*', flags)
     html = re.sub(pattern, r'', html)
     return html
 
@@ -123,7 +124,13 @@ def remove_captions(html):
 def parse(url, html):
     html = remove_script_tags(html)
     html = parse_images(url, html)
+    print('-----------------------------')
+    print(html)
     html = parse_links(url, html)
+    print('-----------------------------')
+    print(html)
+
+    print('-----------------------------')
     html = parse_bolds(html)
     html = parse_headers(html)
     html = parse_unordered_lists(html)
@@ -133,5 +140,4 @@ def parse(url, html):
     html = remove_single_tags(html)
     html = remove_empty_tags(html)
     html = remove_excessive_whitespace(html)
-    print(html)
-    return html
+    return html.strip()

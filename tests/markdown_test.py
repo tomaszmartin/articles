@@ -134,17 +134,16 @@ def test_full_markdown(sample_html):
                '* Regular list\n' \
                '\n' \
                '![text](https://sample.com/img.jpg)\n' \
-               '[link](https://sample.com/)\n'
+               '[link](https://sample.com/)'
     assert expected == actual
 
 
 def test_link_with_img():
     url = 'https://sample.com/wtf'
-    html = '<div class="box-avatar" itemprop="author" itemscope="" ' \
-           'itemtype="https://schema.org/Person">' \
-           '<a href="https://sample.com/wtf" itemprop="name">' \
-           '<img alt="Author" src="https://sample.com/wtf.jpg" class="avatar avatar-50 photo" ' \
-           'height="50" width="50">Autor tekstu</a></div>'
+    html = '<a href="https://sample.com/wtf" itemprop="name">' \
+           '<img alt="Author" src="https://sample.com/wtf.jpg">Autor tekstu</a>'
     expected = '[![Autor tekstu](https://sample.com/wtf.jpg)](https://sample.com/wtf)'
     actual = markdown.parse(url, html)
+    print(expected)
+    print(actual)
     assert expected == actual
