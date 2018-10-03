@@ -15,10 +15,10 @@ def get_domain(url):
 def parse_images(url, html):
     domain = get_domain(url)
     html = re.sub(r'src=(["\'])/(.*?)(\1)', rf'src="{domain}/\2"', html)
-    img = re.compile(r'<img[^>]+src=(["\'])([^\1]*?)(\1)[^>]*alt=(["\'])([^\3]*?)(\3)[^>]*/?>')
-    html = re.sub(img, r'![\5](\2)', html)
-    img = re.compile(r'<img[^>]+alt=(["\'])([^\1]*?)(\1)[^>]*src=(["\'])([^\3]*?)(\3)[^>]*/?>')
-    html = re.sub(img, r'![\5](\2)', html)
+    img = re.compile(r'<img[^>]+src=(["\'])(?P<src>[^\1]*?)(\1)[^>]*alt=(["\'])(?P<alt>[^\3]*?)(\3)[^>]*/?>')
+    html = re.sub(img, r'![\g<alt>](\g<src>)', html)
+    img = re.compile(r'<img[^>]+alt=(["\'])(?P<alt>[^\1]*?)(\1)[^>]*src=(["\'])(?P<src>[^\3]*?)(\3)[^>]*/?>')
+    html = re.sub(img, r'![\g<alt>](\g<src>)', html)
     return html
 
 
@@ -27,9 +27,9 @@ def parse_links(url, html):
     # Remove empty links
     html = re.sub(r'(<a[^>]*><(\w+)[^>]*></(\2)></a>)', r'', html)
     html = re.sub(r'href="/(.*?)"', rf'href="{domain}/\1"', html)
-    parsed_img = r'(!\[([^\]]+)\]\(([^\)]*)\))'
-    anchor_with_img = re.compile(rf'<a[^>]*href="([^"]*?)"[^>]*>{parsed_img}([^<]*)</a>')
-    html = re.sub(anchor_with_img, r'[![\5](\3)](\1)', html)
+    parsed_img = r'(!\[(?P<alt>[^\]]+)\]\((?P<src>[^\)]*)\))'
+    anchor_with_img = re.compile(rf'<a[^>]*href="(?P<href>[^"]*?)"[^>]*>{parsed_img}(?P<text>[^<]*)</a>')
+    html = re.sub(anchor_with_img, r'[![\g<text>](\g<src>)](\g<href>)', html)
     anchor = re.compile(r'<a[^>]*href="([^"]*?)"[^>]*>([^<]*?)</a>')
     html = re.sub(anchor, r'[\2](\1)', html)
     return html

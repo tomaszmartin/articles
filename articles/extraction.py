@@ -67,4 +67,6 @@ if __name__ == '__main__':
     html = clean_body(html)
     md = markdown.parse(url, html)
     print(md)
+    print('-----------------------------------------')
+    print(html)
 

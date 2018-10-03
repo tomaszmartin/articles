@@ -17,6 +17,18 @@ def test_markdown_image():
     assert result == md
 
 
+def test_markdown_image_with_params():
+    url = ''
+    html = '<img alt="Screen Shot" ' \
+           'class="post-image-img attachment-large wp-post-image" ' \
+           'data-ratio="1.7728531855956" ' \
+           'src="https://cdn.cultofmac.com/wp-content/uploads/2012/10/Screen-Shot.jpg" ' \
+           'title="5 reasons we expect an Apple October press event"/>'
+    result = markdown.parse_images(url, html)
+    md = '![Screen Shot](https://cdn.cultofmac.com/wp-content/uploads/2012/10/Screen-Shot.jpg)'
+    assert result == md
+
+
 def test_markdown_image_no_domain():
     url = 'https://sample.com/wtf'
     html = '<img src="/img.jpg" alt="text"/>'
