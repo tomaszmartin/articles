@@ -55,6 +55,14 @@ def parse_italics(content):
     return content
 
 
+def parse_quotes(content):
+    patterns = [r'<blockquote[^>]*>(\s*)(.*)</blockquote>']
+    for pattern in patterns:
+        pattern = re.compile(pattern, flags)
+        content = re.sub(pattern, r'> \2', content)
+    return content
+
+
 def parse_headers(content):
     patterns = {'#': r'<h1[^>]*>(\s*)?(.*?)</h1>',
                 '##': r'<h2[^>]*>(\s*)?(.*?)</h2>',
@@ -134,6 +142,7 @@ def parse(url, html):
     html = parse_images(url, html)
     html = parse_links(url, html)
     html = parse_bolds(html)
+    html = parse_quotes(html)
     html = parse_headers(html)
     html = parse_unordered_lists(html)
     html = parse_ordered_lists(html)
