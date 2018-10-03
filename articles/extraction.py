@@ -53,7 +53,10 @@ def clean_body(html):
     soup = BeautifulSoup(html, 'html.parser')
     to_remove = ['div[class*="footer"]', 'div[class*="social-container"]',
                  'div[class*="Left"]', 'div[class*="Share"]',
-                 'aside', 'nav', 'footer', 'div[class*="embed"]']
+                 'aside', 'nav', 'footer', 'div[class*="embed"]',
+                 'div[class*="crumb"]', 'div[class*="sharing"]',
+                 'div[class*="related"]', 'div[class*="comments"]',
+                 'div[class*="widget"]']
     for selector in to_remove:
         for item in soup.select(selector):
             item.decompose()
@@ -61,12 +64,10 @@ def clean_body(html):
 
 
 if __name__ == '__main__':
-    url = 'https://www.cultofmac.com/580394/apple-press-event-october-2018-reasons/'
+    url = 'http://www.mmarocks.pl/dana-white/prezydent-ufc-o-anulowaniu-walki-shevchenko-jedrzejczyk'
     resp = requests.get(url)
     html = extract_body(resp.text)
     html = clean_body(html)
     md = markdown.parse(url, html)
     print(md)
-    print('-----------------------------------------')
-    print(html)
 

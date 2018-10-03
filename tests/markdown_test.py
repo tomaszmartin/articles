@@ -156,6 +156,4 @@ def test_link_with_img():
            '<img alt="Author" src="https://sample.com/wtf.jpg">Autor tekstu</a>'
     expected = '[![Autor tekstu](https://sample.com/wtf.jpg)](https://sample.com/wtf)'
     actual = markdown.parse(url, html)
-    print(expected)
-    print(actual)
     assert expected == actual

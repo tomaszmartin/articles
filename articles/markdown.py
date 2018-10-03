@@ -5,6 +5,7 @@ from urllib.parse import urlparse
 
 
 flags = re.MULTILINE | re.IGNORECASE | re.DOTALL
+attribute_pattern = r'{0}=(["\'])(?P<{0}>[^\1]*?)(\1)[^>]*'
 
 
 def get_domain(url):
@@ -14,11 +15,15 @@ def get_domain(url):
 
 def parse_images(url, html):
     domain = get_domain(url)
+    # Substitute relative urls with a full ones
     html = re.sub(r'src=(["\'])/(.*?)(\1)', rf'src="{domain}/\2"', html)
-    img = re.compile(r'<img[^>]+src=(["\'])(?P<src>[^\1]*?)(\1)[^>]*alt=(["\'])(?P<alt>[^\3]*?)(\3)[^>]*/?>')
-    html = re.sub(img, r'![\g<alt>](\g<src>)', html)
-    img = re.compile(r'<img[^>]+alt=(["\'])(?P<alt>[^\1]*?)(\1)[^>]*src=(["\'])(?P<src>[^\3]*?)(\3)[^>]*/?>')
-    html = re.sub(img, r'![\g<alt>](\g<src>)', html)
+    # Define needed attributes
+    src = attribute_pattern.format('src')
+    alt = attribute_pattern.format('alt')
+    # Check regardless of position
+    for pattern in (rf'<img[^>]+{src}{alt}/?>', rf'<img[^>]+{alt}{src}/?>'):
+        html = re.sub(pattern, r'![\g<alt>](\g<src>)', html)
+
     return html
 
 
