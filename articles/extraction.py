@@ -56,7 +56,7 @@ def clean_body(html):
                  'aside', 'nav', 'footer', 'div[class*="embed"]',
                  'div[class*="crumb"]', 'div[class*="sharing"]',
                  'div[class*="related"]', 'div[class*="comments"]',
-                 'div[class*="widget"]']
+                 'div[class*="widget"]', 'div[class*="meta"]']
     for selector in to_remove:
         for item in soup.select(selector):
             item.decompose()
@@ -64,7 +64,7 @@ def clean_body(html):
 
 
 if __name__ == '__main__':
-    url = 'http://www.mmarocks.pl/dana-white/prezydent-ufc-o-anulowaniu-walki-shevchenko-jedrzejczyk'
+    url = 'https://ia.net/writer/support/general/markdown-guide'
     resp = requests.get(url)
     html = extract_body(resp.text)
     html = clean_body(html)
