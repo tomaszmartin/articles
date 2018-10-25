@@ -4,8 +4,9 @@ import re
 from urllib.parse import urlparse
 
 
-flags = re.MULTILINE | re.IGNORECASE | re.DOTALL
-attribute_pattern = r'{0}=(["\'])(?P<{0}>[^\1]*?)(\1)[^>]*'
+FLAGS = re.MULTILINE | re.IGNORECASE | re.DOTALL
+TAG_PATTERN = r'<{0}[^>]*>(.*?)</{0}>'
+ATTR_PATTERN = r'{0}=(["\'])(?P<{0}>[^\1]*?)(\1)[^>]*'
 
 
 def get_domain(url):
@@ -18,8 +19,8 @@ def parse_images(url, html):
     # Substitute relative urls with a full ones
     html = re.sub(r'src=(["\'])/(.*?)(\1)', rf'src="{domain}/\2"', html)
     # Define needed attributes
-    src = attribute_pattern.format('src')
-    alt = attribute_pattern.format('alt')
+    src = ATTR_PATTERN.format('src')
+    alt = ATTR_PATTERN.format('alt')
     # Check regardless of position
     for pattern in (rf'<img[^>]+{src}{alt}/?>', rf'<img[^>]+{alt}{src}/?>'):
         html = re.sub(pattern, r'![\g<alt>](\g<src>)', html)
@@ -43,7 +44,7 @@ def parse_links(url, html):
 def parse_bolds(content):
     patterns = [r'<b[^>]*>([^<]*)</b>', r'<strong[^>]*>([^<]*)</strong>']
     for pattern in patterns:
-        patt = re.compile(pattern, flags)
+        patt = re.compile(pattern, FLAGS)
         content = re.sub(patt, r'**\1**', content)
     return content
 
@@ -58,7 +59,7 @@ def parse_italics(content):
 def parse_quotes(content):
     patterns = [r'<blockquote[^>]*>(\s*)([^<]*)</blockquote>']
     for pattern in patterns:
-        pattern = re.compile(pattern, flags)
+        pattern = re.compile(pattern, FLAGS)
         content = re.sub(pattern, r'> \2', content)
     return content
 
@@ -66,7 +67,7 @@ def parse_quotes(content):
 def parse_code(content):
     patterns = [r'<pre[^>]*>(\s*)(.*?)</pre>']
     for pattern in patterns:
-        pattern = re.compile(pattern, flags)
+        pattern = re.compile(pattern, FLAGS)
         content = re.sub(pattern, r'```\n\2```\n', content)
     return content
 
@@ -77,21 +78,21 @@ def parse_headers(content):
                 '###': r'<h3[^>]*>(\s*)?(.*?)</h3>',
                 '####': r'<h4[^>]*>(\s*)?(.*?)</h4>'}
     for mark, pattern in patterns.items():
-        patt = re.compile(pattern, flags)
+        patt = re.compile(pattern, FLAGS)
         content = re.sub(patt, rf'{mark} \2', content)
     return content
 
 
 def parse_unordered_lists(html):
-    ul = re.compile(r'<ul[^>]*>(.*?)</ul>', flags)
-    li = re.compile(r'<li[^>]*>(.*?)</li>', flags)
+    ul = re.compile(r'<ul[^>]*>(.*?)</ul>', FLAGS)
+    li = re.compile(r'<li[^>]*>(.*?)</li>', FLAGS)
     html = re.sub(ul, r'\1', html)
     html = re.sub(li, r'* \1', html)
     return html
 
 
 def parse_ordered_lists(html):
-    ol = re.compile(r'<ol[^>]*>(.*?)</ol>', flags)
+    ol = re.compile(r'<ol[^>]*>(.*?)</ol>', FLAGS)
     if re.match(ol, html):
         html = re.sub(ol, r'\1', html)
         elements = re.findall(r'<li>(.*?)</li>', html)
@@ -102,16 +103,16 @@ def parse_ordered_lists(html):
 
 def remove_script_tags(html):
     # Remove scripts with content
-    script = re.compile(r'<script[^>]*>(.*?)</script[^>]*>', flags)
+    script = re.compile(r'<script[^>]*>(.*?)</script[^>]*>', FLAGS)
     html = re.sub(script, r'', html)
-    script = re.compile(r'<style[^>]*>(.*?)</style[^>]*>', flags)
+    script = re.compile(r'<style[^>]*>(.*?)</style[^>]*>', FLAGS)
     html = re.sub(script, r'', html)
     return html
 
 
 def remove_empty_tags(html):
     # Remove other tags and extract their content
-    pattern = re.compile(r'<(\w+)[^>]*>(\s?)(.*?)</(\1)[^>]*>', flags)
+    pattern = re.compile(r'<(\w+)[^>]*>(\s?)(.*?)</(\1)[^>]*>', FLAGS)
     if re.search(pattern, html):
         html = re.sub(pattern, r'\3', html)
         return remove_empty_tags(html)
@@ -122,7 +123,7 @@ def remove_single_tags(html):
     # Remove other tags and extract their content
     pattern = re.compile(r'<(\w+)[^>]*>[^\S\n]*')
     html = re.sub(pattern, r'', html)
-    pattern = re.compile(r'</(\w+)[^>]*>[^\S\n]*', flags)
+    pattern = re.compile(r'</(\w+)[^>]*>[^\S\n]*', FLAGS)
     html = re.sub(pattern, r'', html)
     return html
 
@@ -134,13 +135,13 @@ def remove_excessive_whitespace(html):
 
 
 def remove_comments(html):
-    comment = re.compile(r'<!--(.*?)-->', flags)
+    comment = re.compile(r'<!--(.*?)-->', FLAGS)
     html = re.sub(comment, r'', html)
     return html
 
 
 def remove_captions(html):
-    caption = re.compile(r'<figcaption[^>]*>(.*?)</figcaption[^>]*>', flags)
+    caption = re.compile(r'<figcaption[^>]*>(.*?)</figcaption[^>]*>', FLAGS)
     html = re.sub(caption, r'', html)
     return html
 

@@ -67,6 +67,7 @@ ipython_config.py
 
 # pyenv
 .python-version
+Pipfile.lock
 
 # Environments
 .env
