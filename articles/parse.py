@@ -1,65 +1,50 @@
 from html.parser import HTMLParser
-from html.entities import name2codepoint
+
+from data import sample_html
 
 
-sample = '<html>\n' \
-         '<p><span><strong>Bold text.</strong></span></p>\n' \
-         '<h1>Header 1</h1>\n' \
-         '<h2>Header 2</h2>\n' \
-         '<h3>Header 3</h3>\n' \
-         '<p>Regular line\n' \
-         'Another line\n</p>' \
-         '<p>List:</p>\n' \
-         '<ul>\n' \
-         '<li><strong>Bold list</strong></li>\n' \
-         '<li>Regular list</li>\n' \
-         '</ul>\n' \
-         '<p><img src="https://sample.com/img.jpg" alt="text"/></p>\n' \
-         '<p><a href="/">link</a></p>\n' \
-         '</html>'
-
-
-class Tag:
-    """Single HTML tag."""
-
-    def __init__(self, name, attrs, children):
-        self.name = name
-        self.attrs = attrs
-        self.children = children
-
-
-class Markdown(HTMLParser):
+class MarkdownParser(HTMLParser):
     """Converting html text to markdown"""
+
+    __tags__ = {
+        'h1': ('# ', ''),
+        'h2': ('## ', ''),
+        'h3': ('### ', ''),
+        'h4': ('#### ', ''),
+        'li': ('* ', ''),
+        'strong': ('**', '**'),
+    }
 
     def __init__(self, *args, **kwargs):
         HTMLParser.__init__(self, *args, **kwargs)
-        self.sc = 0
-        self.ec = 0
-        self.tags = []
+        self.md = ''
 
     def handle_starttag(self, tag, attrs):
-        self.sc += 1
-        print(f"{self.sc} Start tag:", tag)
+        sign = self.__tags__.get(tag, ('', ''))[0]
+        self.md += sign
 
     def handle_endtag(self, tag):
-        self.ec += 1
-        print(f"{self.ec} End tag    :", tag)
+        sign = self.__tags__.get(tag, ('', ''))[1]
+        self.md += sign
 
     def handle_data(self, data):
-        print("Data      :", data)
-
-    def handle_comment(self, data):
-        print("Comment   :", data)
-
-    def handle_entityref(self, name):
-        print("Named ent :", name)
-
-    def handle_charref(self, name):
-        print("Num ent   :", name)
-
-    def handle_decl(self, data):
-        print("Decl      :", data)
+        self.md += data
 
 
-parser = Markdown()
-parser.feed(sample)
+class Markdown:
+
+    def __init__(self, html):
+        self.parser = MarkdownParser()
+        self.html = html
+        self._raw = None
+
+    @property
+    def content(self):
+        if not self._raw:
+            self.parser.feed(self.html)
+            self._raw = self.parser.md
+        return self._raw
+
+
+md = Markdown(sample_html)
+print(md.content)
