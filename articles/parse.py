@@ -1,6 +1,6 @@
 from html.parser import HTMLParser
 
-from data import sample_html
+from articles.data import sample_html
 
 
 class MarkdownParser(HTMLParser):
@@ -12,7 +12,12 @@ class MarkdownParser(HTMLParser):
         'h3': ('### ', ''),
         'h4': ('#### ', ''),
         'li': ('* ', ''),
+        'i': ('*', '*'),
+        'em': ('*', '*'),
         'strong': ('**', '**'),
+        'b': ('**', '**'),
+        'blockquote': ('>', ''),
+        'q': ('>', ''),
     }
 
     def __init__(self, *args, **kwargs):

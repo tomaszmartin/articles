@@ -1,11 +1,8 @@
 """Extracting articles from web pages."""
 import re
 
-import requests
-
 from bs4 import BeautifulSoup
 
-from articles import markdown
 from articles.errors import BodyNotFoundError, HeaderNotFoundError
 
 FLAGS = re.MULTILINE | re.IGNORECASE | re.DOTALL
@@ -61,13 +58,3 @@ def clean_body(html):
         for item in soup.select(selector):
             item.decompose()
     return soup.decode_contents()
-
-
-if __name__ == '__main__':
-    url = 'https://ia.net/writer/support/general/markdown-guide'
-    resp = requests.get(url)
-    html = extract_body(resp.text)
-    html = clean_body(html)
-    md = markdown.parse(url, html)
-    print(md)
-
