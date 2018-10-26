@@ -1,4 +1,4 @@
-from articles.parse import Markdown
+from articles.markdown import Markdown
 
 
 def test_markdown_image():

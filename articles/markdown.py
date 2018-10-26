@@ -1,12 +1,12 @@
+"""Creating markdown text from raw html"""
 from html.parser import HTMLParser
-
-from articles.data import sample_html
 
 
 class MarkdownParser(HTMLParser):
-    """Converting html text to markdown"""
+    """Parses html and creates markdown of of it"""
 
-    __tags__ = {
+    __defaults = ('', '')
+    __to_replace = {
         'h1': ('# ', ''),
         'h2': ('## ', ''),
         'h3': ('### ', ''),
@@ -19,24 +19,35 @@ class MarkdownParser(HTMLParser):
         'blockquote': ('>', ''),
         'q': ('>', ''),
     }
+    __to_skip = [
+        'style',
+        'script',
+    ]
 
     def __init__(self, *args, **kwargs):
         HTMLParser.__init__(self, *args, **kwargs)
+        self.skip = False
         self.md = ''
 
     def handle_starttag(self, tag, attrs):
-        sign = self.__tags__.get(tag, ('', ''))[0]
+        sign = self.__to_replace.get(tag, self.__defaults)[0]
         self.md += sign
+        if tag in self.__to_skip:
+            self.skip = True
 
     def handle_endtag(self, tag):
-        sign = self.__tags__.get(tag, ('', ''))[1]
+        sign = self.__to_replace.get(tag, self.__defaults)[1]
         self.md += sign
+        if tag in self.__to_skip:
+            self.skip = False
 
     def handle_data(self, data):
-        self.md += data
+        if not self.skip:
+            self.md += data
 
 
 class Markdown:
+    """Creates markdown from html"""
 
     def __init__(self, html):
         self.parser = MarkdownParser()
@@ -49,7 +60,3 @@ class Markdown:
             self.parser.feed(self.html)
             self._raw = self.parser.md
         return self._raw
-
-
-md = Markdown(sample_html)
-print(md.content)
