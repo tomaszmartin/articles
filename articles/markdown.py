@@ -1,9 +1,10 @@
 """Creating markdown text from raw html"""
+from copy import deepcopy
 from html.parser import HTMLParser
 
 
-class Writer:
-    """Responsible for writing html nodes as markdown"""
+class Converter:
+    """Responsible for converting html nodes into markdown"""
 
     ELEMENTS = {
         'a': '[{data}]({href})',
@@ -26,33 +27,39 @@ class Writer:
         'del': '',
     }
 
-    def write(self, node):
+    def convert_node(self, node):
+        md = self.ELEMENTS.get(node.name, '')
+        attrs = deepcopy(node.attrs)
+        attrs['data'] = node.content
+        return f'{md.format(**attrs)}\n'
+
+    def convert(self, node):
         """Returns html node as markdown"""
-        pass
+        markdown = self.convert_node(node)
+        for child in node.children:
+            markdown += self.convert(child)
+        return markdown
 
 
 class Node:
     """Represents an html node"""
 
     def __init__(self, name, attrs):
-        self.name = name
+        self.name = name.lower()
         self.attrs = attrs
         self.parent = None
         self.content = None
         self.children = []
         self.level = 0
 
+    def __repr__(self):
+        attrs = {'attrs': self.attrs, 'content': self.content}
+        return f"{self.__class__.__name__}: {self.name}('{attrs})"
+
     def add_child(self, child):
         self.children.append(child)
         child.parent = self
         child.level += self.level + 1
-
-    def __repr__(self):
-        attrs = {'name': self.name,
-                 'attrs': self.attrs,
-                 'content': self.content,
-                 'children': len(self.children)}
-        return f"{self.__class__.__name__}('{attrs}')"
 
     def build_node_repr(self, node):
         indentation = '\t' * node.level
@@ -100,3 +107,5 @@ html = open('sample.html').read()
 parser = Parser()
 parser.feed(html)
 print(parser.root.tree_string)
+c = Converter()
+print(c.convert(parser.root))
