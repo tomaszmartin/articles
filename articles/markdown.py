@@ -1,25 +1,20 @@
 """Creating markdown text from raw html"""
 from html.parser import HTMLParser
 
-sample = '<html>\n' \
-           '<p><span><strong>Bold text.</strong></span></p>\n' \
-           '<h1>Header 1</h1>\n' \
-           '<h2>Header 2</h2>\n' \
-           '<h3>Header 3</h3>\n' \
-           '<p>Regular line\n' \
-           'Another line</p>\n' \
-           '<p>List:</p>\n' \
-           '<ul>\n' \
-           '<li><strong>Bold list</strong></li>\n' \
-           '<li>Regular list</li>\n' \
-           '</ul>\n' \
-           '<p><img src="https://sample.com/img.jpg" alt="text"/></p>\n' \
-           '<p><a href="/">link</a></p>\n' \
-           '</html>'
+
+class Node:
+    """Represents an html node"""
+
+    def __init__(self, name, attrs, content='', parent=None, children=None):
+        self.name = name
+        self.attrs = attrs
+        self.content = content
+        self.parent = parent
+        self.children = children
 
 
-class MarkdownParser(HTMLParser):
-    """Parses html and creates markdown of of it"""
+class Writer:
+    """Responsible for writing html nodes as markdown"""
 
     ELEMENTS = {
         'a': '[{data}]({href})',
@@ -27,8 +22,8 @@ class MarkdownParser(HTMLParser):
         'h1': '# {data}',
         'h2': '## {data}',
         'h3': '### {data}',
-        'h4': '### {data}',
-        'li': '* {data}',
+        'h4': '#### {data}',
+        'li': '- {data}',
         'i': '*{data}*',
         'em': '*{data}*',
         'strong': '**{data}**',
@@ -36,7 +31,19 @@ class MarkdownParser(HTMLParser):
         'blockquote': '> {data}',
         'q': '> {data}',
         'p': '{data}',
+        'code': '`{data}`',
+        'pre': '```\n{data}\n```',
+        'ins': '{data}',
+        'del': '',
     }
+
+    def write(self, node):
+        """Returns html node as markdown"""
+        pass
+
+
+class Parser(HTMLParser):
+    """Parses html and creates markdown of of it"""
 
     def __init__(self, *args, **kwargs):
         HTMLParser.__init__(self, *args, **kwargs)
@@ -50,7 +57,8 @@ class MarkdownParser(HTMLParser):
         self.open_tags.append({'name': tag, 'attrs': attrs})
 
     def handle_data(self, data):
-        self.open_tags[-1]['attrs']['data'] = data
+        if self.open_tags:
+            self.open_tags[-1]['attrs']['data'] = data
 
     def handle_endtag(self, tag):
         data = self.open_tags.pop()
@@ -65,7 +73,7 @@ class Markdown:
     """Creates markdown from html"""
 
     def __init__(self, html):
-        self.parser = MarkdownParser()
+        self.parser = Parser()
         self.html = html
         self._raw = None
 
@@ -77,5 +85,6 @@ class Markdown:
         return self._raw
 
 
-md = Markdown(sample)
+html = open('sample.html').read()
+md = Markdown(html)
 print(md.content)
