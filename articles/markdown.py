@@ -7,7 +7,7 @@ sample = '<html>\n' \
            '<h2>Header 2</h2>\n' \
            '<h3>Header 3</h3>\n' \
            '<p>Regular line\n' \
-           'Another line\n</p>' \
+           'Another line</p>\n' \
            '<p>List:</p>\n' \
            '<ul>\n' \
            '<li><strong>Bold list</strong></li>\n' \
@@ -17,29 +17,25 @@ sample = '<html>\n' \
            '<p><a href="/">link</a></p>\n' \
            '</html>'
 
+
 class MarkdownParser(HTMLParser):
     """Parses html and creates markdown of of it"""
 
-    __defaults = ('', '')
-    __to_replace = {
-        'h1': ('# ', ''),
-        'h2': ('## ', ''),
-        'h3': ('### ', ''),
-        'h4': ('#### ', ''),
-        'li': ('* ', ''),
-        'i': ('*', '*'),
-        'em': ('*', '*'),
-        'strong': ('**', '**'),
-        'b': ('**', '**'),
-        'blockquote': ('>', ''),
-        'q': ('> ', ''),
-    }
-    __to_skip = [
-        'style',
-        'script',
-    ]
-    __to_extract = {
-        'a': '[{data}]({link})'
+    ELEMENTS = {
+        'a': '[{data}]({href})',
+        'img': '![{alt}]({src})',
+        'h1': '# {data}',
+        'h2': '## {data}',
+        'h3': '### {data}',
+        'h4': '### {data}',
+        'li': '* {data}',
+        'i': '*{data}*',
+        'em': '*{data}*',
+        'strong': '**{data}**',
+        'b': '**{data}**',
+        'blockquote': '> {data}',
+        'q': '> {data}',
+        'p': '{data}',
     }
 
     def __init__(self, *args, **kwargs):
@@ -49,17 +45,20 @@ class MarkdownParser(HTMLParser):
         self.tree = []
 
     def handle_starttag(self, tag, attrs):
+        attrs = dict(attrs)
+        attrs['data'] = ''
         self.open_tags.append({'name': tag, 'attrs': attrs})
 
     def handle_data(self, data):
-        self.open_tags[-1]['data'] = data
+        self.open_tags[-1]['attrs']['data'] = data
 
     def handle_endtag(self, tag):
         data = self.open_tags.pop()
         self.convert_tag(data)
 
-    def convert_tag(self, tag):
-        print(tag)
+    def convert_tag(self, element):
+        markdown = self.ELEMENTS.get(element['name'], '')
+        self.content += markdown.format(**element['attrs'])
 
 
 class Markdown:
