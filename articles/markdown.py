@@ -2,17 +2,6 @@
 from html.parser import HTMLParser
 
 
-class Node:
-    """Represents an html node"""
-
-    def __init__(self, name, attrs, content='', parent=None, children=None):
-        self.name = name
-        self.attrs = attrs
-        self.content = content
-        self.parent = parent
-        self.children = children
-
-
 class Writer:
     """Responsible for writing html nodes as markdown"""
 
@@ -42,6 +31,41 @@ class Writer:
         pass
 
 
+class Node:
+    """Represents an html node"""
+
+    def __init__(self, name, attrs):
+        self.name = name
+        self.attrs = attrs
+        self.parent = None
+        self.content = None
+        self.children = []
+        self.level = 0
+
+    def add_child(self, child):
+        self.children.append(child)
+        child.parent = self
+        child.level += self.level + 1
+
+    def __repr__(self):
+        attrs = {'name': self.name,
+                 'attrs': self.attrs,
+                 'content': self.content,
+                 'children': len(self.children)}
+        return f"{self.__class__.__name__}('{attrs}')"
+
+    def build_node_repr(self, node):
+        indentation = '\t' * node.level
+        text = f'\n{indentation}{node}'
+        for child in node.children:
+            text += self.build_node_repr(child)
+        return text
+
+    @property
+    def tree_string(self):
+        return self.build_node_repr(self)
+
+
 class Parser(HTMLParser):
     """Parses html and creates markdown of of it"""
 
@@ -49,42 +73,30 @@ class Parser(HTMLParser):
         HTMLParser.__init__(self, *args, **kwargs)
         self.content = ''
         self.open_tags = []
-        self.tree = []
+        self.root = None
 
     def handle_starttag(self, tag, attrs):
-        attrs = dict(attrs)
-        attrs['data'] = ''
-        self.open_tags.append({'name': tag, 'attrs': attrs})
+        current_node = Node(tag, dict(attrs))
+        if not self.root:
+            self.root = current_node
+        else:
+            self.open_tags[-1].add_child(current_node)
+        self.open_tags.append(current_node)
 
     def handle_data(self, data):
-        if self.open_tags:
-            self.open_tags[-1]['attrs']['data'] = data
+        # When documents starts with pure text
+        if not self.open_tags:
+            current_node = Node('html', {})
+            self.root = current_node
+            self.open_tags.append(current_node)
+        self.open_tags[-1].content = data
 
     def handle_endtag(self, tag):
-        data = self.open_tags.pop()
-        self.convert_tag(data)
-
-    def convert_tag(self, element):
-        markdown = self.ELEMENTS.get(element['name'], '')
-        self.content += markdown.format(**element['attrs'])
-
-
-class Markdown:
-    """Creates markdown from html"""
-
-    def __init__(self, html):
-        self.parser = Parser()
-        self.html = html
-        self._raw = None
-
-    @property
-    def content(self):
-        if not self._raw:
-            self.parser.feed(self.html)
-            self._raw = self.parser.content
-        return self._raw
+        # print(self.root.print_tree())
+        self.open_tags.pop()
 
 
 html = open('sample.html').read()
-md = Markdown(html)
-print(md.content)
+parser = Parser()
+parser.feed(html)
+print(parser.root.tree_string)
