@@ -88,7 +88,6 @@ class Parser(HTMLParser):
         return self.root
 
     def handle_starttag(self, tag, attrs):
-        print(f'Opening {tag}')
         current_node = Node(tag, dict(attrs))
         try:
             self.open_tags[-1].add_child(current_node)

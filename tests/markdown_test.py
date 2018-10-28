@@ -3,11 +3,11 @@ from articles.markdown import Markdown
 
 def test_markdown_image():
     html = '<img src="https://ocs-pl.oktawave.com/iphone.jpg" ' \
-           'alt="iPhone XS jest nudny jak flaki z olejem" ' \
+           'alt="iPhone XS" ' \
            'data-pagespeed-url-hash=2676138789 ' \
            'onload="pagespeed()"/>'
     result = Markdown(html).content
-    md = '![iPhone XS jest nudny jak flaki z olejem](https://ocs-pl.oktawave.com/iphone.jpg)'
+    md = '![iPhone XS](https://ocs-pl.oktawave.com/iphone.jpg)'
     assert result == md
 
 
@@ -15,10 +15,10 @@ def test_markdown_image_with_params():
     html = '<img alt="Screen Shot" ' \
            'class="post-image-img attachment-large wp-post-image" ' \
            'data-ratio="1.7728531855956" ' \
-           'src="https://cdn.cultofmac.com/wp-content/uploads/2012/10/Screen-Shot.jpg" ' \
+           'src="https://cdn.cultofmac.com/Screen-Shot.jpg" ' \
            'title="5 reasons we expect an Apple October press event"/>'
     result = Markdown(html).content
-    md = '![Screen Shot](https://cdn.cultofmac.com/wp-content/uploads/2012/10/Screen-Shot.jpg)'
+    md = '![Screen Shot](https://cdn.cultofmac.com/Screen-Shot.jpg)'
     assert result == md
 
 
@@ -39,9 +39,9 @@ def test_markdown_two_images():
 
 
 def test_markdown_link():
-    html = '<p>sample <a href="https://sample.com/" itemprop="name">link</a></p>'
+    html = '<p>sample <a href="https://x.com/" itemprop="name">link</a></p>'
     result = Markdown(html).content
-    md = 'sample [link](https://sample.com/)\n'
+    md = 'sample [link](https://x.com/)\n'
     assert result == md
 
 
@@ -137,14 +137,12 @@ def test_full_markdown(sample_html):
                '[link](/)\n'
 
     print(actual)
-    print(expected)
-    print(md.tree)
     assert expected == actual
 
 
 def test_link_with_img():
-    html = '<a href="https://sample.com/wtf" itemprop="name">' \
-           '<img alt="Author" src="https://sample.com/wtf.jpg">Autor tekstu</a>'
-    expected = '[![Author](https://sample.com/wtf.jpg)](https://sample.com/wtf)'
+    html = '<a href="https://x.com/wtf" itemprop="name">' \
+           '<img alt="Author" src="https://x.com/wtf.jpg">Autor</a>'
+    expected = '[![Author](https://x.com/wtf.jpg)](https://x.com/wtf)'
     actual = Markdown(html).content
     assert expected == actual
