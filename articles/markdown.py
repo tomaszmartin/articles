@@ -1,6 +1,7 @@
 """Creating markdown text from raw html"""
 from copy import deepcopy
 from html.parser import HTMLParser
+import re
 
 
 class Converter:
@@ -39,26 +40,36 @@ class Converter:
 
     def convert_node(self, node):
         md = self.ELEMENTS.get(node.name, '{data}')
-        postfix = ''
+        # Column separators after head
         if node.name == 'thead':
-            cols = len(node.children[0].children)
-            postfix = '\n' + (cols * '|:-')
+            for child in node.children:
+                if child.name == 'tr':
+                    cols = [c for c in child.children
+                            if c.name == 'th']
+                    md = '{data}\n' + (len(cols) * '|:-')
+        # Inline code inside multiline code
         elif node.name == 'code':
             if node.parent.name == 'pre':
                 md = '{data}'
+        # Numbering ordered lists
         elif node.name == 'li':
             if node.parent.name == 'ol':
-                points = [n for n in node.parent.children if n.name == 'li']
+                points = [n for n in node.parent.children
+                          if n.name == 'li']
                 position = points.index(node) + 1
                 md = f'{position}. ' + '{data}\n'
         attrs = deepcopy(node.attrs)
         attrs['data'] = node.content
-        return f'{md.format(**attrs)}{postfix}'
+        formatted = f'{md.format(**attrs)}'
+        # Strip new line with space
+        formatted = re.sub(r'\n ', '\n', formatted)
+        return formatted
 
     def convert(self, node):
         """Returns html node as markdown"""
         for child in node.children:
-            node.content += self.convert(child)
+            child_content = self.convert(child)
+            node.content += child_content
         result = self.convert_node(node)
         return result
 
@@ -87,21 +98,19 @@ class Parser(HTMLParser):
 
     def handle_data(self, data):
         # When documents starts with pure text
+        current_node = Node('span', {})
         if not self.open_tags:
-            current_node = Node('html', {})
             self.root = current_node
             self.open_tags.append(current_node)
-        if self.just_opened:
-            if True:  # data.strip():
-                self.open_tags[-1].content += data
-        else:
-            if True:  # data.strip():
-                current_node = Node('span', {})
-                current_node.content += data
-                self.open_tags[-1].add_child(current_node)
+        if data:
+            spaces = re.compile(r' +', re.M)
+            newlines = re.compile(r'\n+', re.M)
+            stripped = re.sub(spaces, ' ', data)
+            stripped = re.sub(newlines, '', stripped)
+            current_node.content += stripped
+        self.open_tags[-1].add_child(current_node)
 
     def handle_endtag(self, tag):
-        # print(self.root.print_tree())
         self.just_opened = False
         self.open_tags.pop()
 
@@ -112,11 +121,10 @@ class Node:
     def __init__(self, name, attrs):
         self.name = name.lower()
         self.attrs = attrs
-        self.parent = None
         self.content = ''
+        self.parent = None
         self.children = []
         self.level = 0
-        self.closed = False
 
     def __repr__(self):
         attrs = {'attrs': self.attrs, 'content': self.content}
@@ -137,11 +145,12 @@ class Node:
         return text
 
 
-html = open('sample.html').read()
-parser = Parser()
-converter = Converter()
-parser.feed(html)
-tree = parser.result.build_tree()
-markdown = converter.convert(parser.result)
-print(markdown)
+def convert(html):
+    parser = Parser()
+    parser.feed(html)
+    return Converter().convert(parser.result), parser.result.build_tree()
 
+
+html = open('sample.html').read()
+md, tree = convert(html)
+print(md)
