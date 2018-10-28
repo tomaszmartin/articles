@@ -25,15 +25,15 @@ def test_markdown_image_with_params():
 def test_markdown_image_no_domain():
     html = '<img src="/img.jpg" alt="text"/>'
     result = Markdown(html).content
-    md = '![text](https://sample.com/img.jpg)'
+    md = '![text](/img.jpg)'
     assert result == md
 
 
 def test_markdown_two_images():
-    html = '<img src="/1.jpg" alt="text1"/>\n' \
+    html = '<img src="/1.jpg" alt="text1"/><br>' \
            '<img src="https://sample.org/2.jpg" alt="text2"/>'
     result = Markdown(html).content
-    md = '![text1](https://sample.com/1.jpg)\n' \
+    md = '![text1](/1.jpg)\n' \
          '![text2](https://sample.org/2.jpg)'
     assert result == md
 
@@ -41,22 +41,22 @@ def test_markdown_two_images():
 def test_markdown_link():
     html = '<p>sample <a href="https://sample.com/" itemprop="name">link</a></p>'
     result = Markdown(html).content
-    md = '<p>sample [link](https://sample.com/)</p>'
+    md = 'sample [link](https://sample.com/)\n'
     assert result == md
 
 
 def test_markdown_hash_link():
-    html = '<a href="#disqus_thread"><span></span></a>' \
+    html = '<a href="/#disqus_thread"><span></span></a>' \
            '<a href="https://www.cultofmac.com/1">Leave a comment</a>'
     result = Markdown(html).content
-    md = '[Leave a comment](https://www.cultofmac.com/1)'
+    md = '[](/#disqus_thread)[Leave a comment](https://www.cultofmac.com/1)'
     assert result == md
 
 
 def test_markdown_link_no_domain():
     html = '<p>sample <a href="/">link</a></p>'
     result = Markdown(html).content
-    md = '<p>sample [link](https://sample.com/)</p>'
+    md = 'sample [link](/)\n'
     assert result == md
 
 
@@ -86,28 +86,30 @@ def test_italic():
 def test_markdown_header():
     html = '<h1>h1</h1>'
     result = Markdown(html).content
-    md = '# h1'
+    md = '# h1\n\n'
     assert result == md
 
 
 def test_markdown_headers():
-    html = '<h1>h1</h1>\n<h2>h2</h2>'
-    result = Markdown(html).content
-    md = '# h1\n## h2'
+    html = '<h1>h1</h1><h2>h2</h2>'
+    md = Markdown(html)
+    result = md.content
+    print(md.tree)
+    md = '# h1\n\n## h2\n\n'
     assert result == md
 
 
 def test_markdown_second_header():
     html = '<h2>„Kler” na Showmax oraz DVD i Blu-Ray</h2>'
     result = Markdown(html).content
-    md = '## „Kler” na Showmax oraz DVD i Blu-Ray'
+    md = '## „Kler” na Showmax oraz DVD i Blu-Ray\n\n'
     assert result == md
 
 
 def test_markdown_unordered_lists():
     html = '<ul>\n<li>1</li>\n<li>2</li>\n<li>3</li>\n</ul>'
     actual = Markdown(html).content
-    expected = '\n* 1\n* 2\n* 3\n'
+    expected = '\n- 1\n- 2\n- 3\n'
     assert expected == actual
 
 
@@ -119,26 +121,30 @@ def test_markdown_ordered_lists():
 
 
 def test_full_markdown(sample_html):
-    actual = Markdown(sample_html).content
+    md = Markdown(sample_html)
+    actual = md.content
     expected = '**Bold text.**\n' \
-               '# Header 1\n' \
-               '## Header 2\n' \
-               '### Header 3\n' \
-               'Regular line\n' \
-               'Another line\n' \
+               '# Header 1\n\n' \
+               '## Header 2\n\n' \
+               '### Header 3\n\n' \
+               'Regular line\nAnother line\n' \
                'List:\n' \
                '\n' \
-               '* **Bold list**\n' \
-               '* Regular list\n' \
+               '- **Bold list**\n' \
+               '- Regular list\n' \
                '\n' \
                '![text](https://sample.com/img.jpg)\n' \
-               '[link](https://sample.com/)'
+               '[link](/)\n'
+
+    print(actual)
+    print(expected)
+    print(md.tree)
     assert expected == actual
 
 
 def test_link_with_img():
     html = '<a href="https://sample.com/wtf" itemprop="name">' \
            '<img alt="Author" src="https://sample.com/wtf.jpg">Autor tekstu</a>'
-    expected = '[![Autor tekstu](https://sample.com/wtf.jpg)](https://sample.com/wtf)'
+    expected = '[![Author](https://sample.com/wtf.jpg)](https://sample.com/wtf)'
     actual = Markdown(html).content
     assert expected == actual

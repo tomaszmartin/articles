@@ -36,6 +36,7 @@ class Converter:
         'thead': '{data}',
         'tr': '\n{data}',
         'td': '|{data}',
+        'br': '\n{data}',
     }
 
     def convert_node(self, node):
@@ -79,29 +80,26 @@ class Parser(HTMLParser):
 
     def __init__(self, *args, **kwargs):
         HTMLParser.__init__(self, *args, **kwargs)
-        self.open_tags = []
-        self.root = None
-        self.just_opened = None
+        self.root = Node('html', {})
+        self.open_tags = [self.root]
 
     @property
     def result(self):
         return self.root
 
     def handle_starttag(self, tag, attrs):
+        print(f'Opening {tag}')
         current_node = Node(tag, dict(attrs))
-        self.just_opened = True
-        if not self.root:
-            self.root = current_node
-        else:
+        try:
             self.open_tags[-1].add_child(current_node)
+        except Exception as e:
+            print(self.open_tags)
+            raise e
         self.open_tags.append(current_node)
 
     def handle_data(self, data):
         # When documents starts with pure text
         current_node = Node('span', {})
-        if not self.open_tags:
-            self.root = current_node
-            self.open_tags.append(current_node)
         if data:
             spaces = re.compile(r' +', re.M)
             newlines = re.compile(r'\n+', re.M)
@@ -111,8 +109,8 @@ class Parser(HTMLParser):
         self.open_tags[-1].add_child(current_node)
 
     def handle_endtag(self, tag):
-        self.just_opened = False
-        self.open_tags.pop()
+        if self.open_tags and self.open_tags[-1].name == tag:
+            self.open_tags.pop()
 
 
 class Node:
@@ -145,12 +143,10 @@ class Node:
         return text
 
 
-def convert(html):
-    parser = Parser()
-    parser.feed(html)
-    return Converter().convert(parser.result), parser.result.build_tree()
+class Markdown:
 
-
-html = open('sample.html').read()
-md, tree = convert(html)
-print(md)
+    def __init__(self, html):
+        parser = Parser()
+        parser.feed(html)
+        self.tree = parser.result.build_tree()
+        self.content = Converter().convert(parser.result)
