@@ -11,6 +11,8 @@ class Converter:
         'h2': '## {data}\n\n',
         'h3': '### {data}\n\n',
         'h4': '#### {data}\n\n',
+        'h5': '##### {data}\n\n',
+        'h6': '###### {data}\n\n',
         'ul': '\n{data}',
         'ol': '\n{data}',
         'li': '- {data}\n',
@@ -44,6 +46,11 @@ class Converter:
         elif node.name == 'code':
             if node.parent.name == 'pre':
                 md = '{data}'
+        elif node.name == 'li':
+            if node.parent.name == 'ol':
+                points = [n for n in node.parent.children if n.name == 'li']
+                position = points.index(node) + 1
+                md = f'{position}. ' + '{data}\n'
         attrs = deepcopy(node.attrs)
         attrs['data'] = node.content
         return f'{md.format(**attrs)}{postfix}'
@@ -85,12 +92,12 @@ class Parser(HTMLParser):
             self.root = current_node
             self.open_tags.append(current_node)
         if self.just_opened:
-            if data.strip():
-                self.open_tags[-1].content += data.strip()
+            if True:  # data.strip():
+                self.open_tags[-1].content += data
         else:
-            if data.strip():
+            if True:  # data.strip():
                 current_node = Node('span', {})
-                current_node.content += data.strip()
+                current_node.content += data
                 self.open_tags[-1].add_child(current_node)
 
     def handle_endtag(self, tag):
@@ -136,6 +143,5 @@ converter = Converter()
 parser.feed(html)
 tree = parser.result.build_tree()
 markdown = converter.convert(parser.result)
-print(tree)
 print(markdown)
 
