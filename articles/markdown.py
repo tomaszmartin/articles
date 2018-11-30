@@ -40,28 +40,29 @@ class Converter:
     }
 
     def convert_node(self, node):
-        md = self.ELEMENTS.get(node.name, '{data}')
+        """Converts html node into markdown text."""
+        markdown = self.ELEMENTS.get(node.name, '{data}')
         # Column separators after head
         if node.name == 'thead':
             for child in node.children:
                 if child.name == 'tr':
                     cols = [c for c in child.children
                             if c.name == 'th']
-                    md = '{data}\n' + (len(cols) * '|:-')
+                    markdown = '{data}\n' + (len(cols) * '|:-')
         # Inline code inside multiline code
         elif node.name == 'code':
             if node.parent.name == 'pre':
-                md = '{data}'
+                markdown = '{data}'
         # Numbering ordered lists
         elif node.name == 'li':
             if node.parent.name == 'ol':
                 points = [n for n in node.parent.children
                           if n.name == 'li']
                 position = points.index(node) + 1
-                md = f'{position}. ' + '{data}\n'
+                markdown = f'{position}. ' + '{data}\n'
         attrs = deepcopy(node.attrs)
         attrs['data'] = node.content
-        formatted = f'{md.format(**attrs)}'
+        formatted = f'{markdown.format(**attrs)}'
         # Strip new line with space
         formatted = re.sub(r'\n ', '\n', formatted)
         return formatted
@@ -83,11 +84,8 @@ class Parser(HTMLParser):
         self.root = Node('html', {})
         self.open_tags = [self.root]
 
-    @property
-    def result(self):
-        return self.root
-
     def handle_starttag(self, tag, attrs):
+        """Handle found beggining of the tag."""
         current_node = Node(tag, dict(attrs))
         try:
             self.open_tags[-1].add_child(current_node)
@@ -97,6 +95,7 @@ class Parser(HTMLParser):
         self.open_tags.append(current_node)
 
     def handle_data(self, data):
+        """Handle found data."""
         # When documents starts with pure text
         current_node = Node('span', {})
         if data:
@@ -108,6 +107,7 @@ class Parser(HTMLParser):
         self.open_tags[-1].add_child(current_node)
 
     def handle_endtag(self, tag):
+        """Handle found ending of the tag."""
         if self.open_tags and self.open_tags[-1].name == tag:
             self.open_tags.pop()
 
@@ -128,11 +128,13 @@ class Node:
         return f"{self.name} ({attrs})"
 
     def add_child(self, child):
+        """Adds a child for."""
         self.children.append(child)
         child.level += self.level + 1
         child.parent = self
 
     def build_tree(self, node=None):
+        """Builds tree for inspecting nodes tree."""
         if not node:
             node = self
         indentation = '\t' * node.level
@@ -143,9 +145,10 @@ class Node:
 
 
 class Markdown:
+    """Converting html text into markdown."""
 
     def __init__(self, html):
         parser = Parser()
         parser.feed(html)
-        self.tree = parser.result.build_tree()
-        self.content = Converter().convert(parser.result)
+        self.tree = parser.root.build_tree()
+        self.content = Converter().convert(parser.root)

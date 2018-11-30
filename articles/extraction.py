@@ -16,6 +16,7 @@ def extract_article(html):
 
 
 def extract_head(html):
+    """Extracts head from html."""
     soup = BeautifulSoup(html, 'html.parser')
     selectors = ['h1', 'header']
     for selector in selectors:
@@ -28,6 +29,7 @@ def extract_head(html):
 
 
 def extract_body(html):
+    """Extracts body from html."""
     soup = BeautifulSoup(html, 'html.parser')
     selectors = ['article', 'div[class*="article"]', 'section[class*="article"]',
                  'div[class*="pageContent"]', 'section[class*="pageContent"]',
@@ -47,6 +49,7 @@ def extract_body(html):
 
 
 def clean_body(html):
+    """Cleans html body from unneccesary elements."""
     soup = BeautifulSoup(html, 'html.parser')
     to_remove = ['div[class*="footer"]', 'div[class*="social-container"]',
                  'div[class*="Left"]', 'div[class*="Share"]',
