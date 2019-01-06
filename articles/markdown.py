@@ -39,7 +39,7 @@ class Converter:
         'br': '\n{data}',
     }
 
-    def convert_node(self, node):
+    def _convert_single_node(self, node):
         """Converts html node into markdown text."""
         markdown = self.ELEMENTS.get(node.name, '{data}')
         # Column separators after head
@@ -84,8 +84,16 @@ class Parser(HTMLParser):
         self.root = Node('html', {})
         self.open_tags = [self.root]
 
+    def remove_whitespace(self, data):
+        spaces = re.compile(r' +', re.M)
+        newlines = re.compile(r'\n+', re.M)
+
+        stripped = re.sub(spaces, ' ', data)
+        stripped = re.sub(newlines, '', stripped)
+        return stripped
+
     def handle_starttag(self, tag, attrs):
-        """Handle found beggining of the tag."""
+        """Handle tag beginning."""
         current_node = Node(tag, dict(attrs))
         try:
             self.open_tags[-1].add_child(current_node)
@@ -95,21 +103,19 @@ class Parser(HTMLParser):
         self.open_tags.append(current_node)
 
     def handle_data(self, data):
-        """Handle found data."""
+        """Handle tag data."""
         # When documents starts with pure text
         current_node = Node('span', {})
         if data:
-            spaces = re.compile(r' +', re.M)
-            newlines = re.compile(r'\n+', re.M)
-            stripped = re.sub(spaces, ' ', data)
-            stripped = re.sub(newlines, '', stripped)
+            stripped = self.remove_whitespace(data)
             current_node.content += stripped
         self.open_tags[-1].add_child(current_node)
 
     def handle_endtag(self, tag):
-        """Handle found ending of the tag."""
-        if self.open_tags and self.open_tags[-1].name == tag:
-            self.open_tags.pop()
+        """Handle tag end."""
+        if self.open_tags:
+            if self.open_tags[-1].name == tag:
+                self.open_tags.pop()
 
 
 class Node:

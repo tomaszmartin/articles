@@ -1,8 +1,6 @@
 """Extracting articles from web pages."""
 import re
-
 from bs4 import BeautifulSoup
-
 from articles.errors import BodyNotFoundError, HeaderNotFoundError
 
 FLAGS = re.MULTILINE | re.IGNORECASE | re.DOTALL
