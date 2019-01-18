@@ -28,32 +28,45 @@ def extract_head(html):
     raise HeaderNotFoundError
 
 
-def extract_body(html):
-    """Extracts body from html."""
+def extract_candidates_for_body(html):
     soup = BeautifulSoup(html, 'html.parser')
-    selectors = ['article', 'div[class*="article"]', 'section[class*="article"]',
-                 'div[class*="pageContent"]', 'section[class*="pageContent"]',
-                 'div[class*="post-body"]', 'div[class*="container"]',
-                 'div[itemprop*="articleBody"]', 'div[class*="content"]']
-    results = []
+    selectors = [
+        'article',
+        'div[class*="article"]',
+        'section[class*="article"]',
+        'div[class*="pageContent"]',
+        'section[class*="pageContent"]',
+        'div[class*="post-body"]',
+        'div[class*="container"]',
+        'div[itemprop*="articleBody"]',
+        'div[class*="content"]'
+    ]
+    candidates = []
     for selector in selectors:
         bodies = soup.select(selector)
         for body in bodies:
             if body:
-                results.append(body)
-    body = None
-    if results:
+                candidates.append(body)
+    return candidates
+
+def choose_best_candidate_for_body(candidates):
+    best = None
+    if candidates:
         # Take the longest result based on natural text length
-        for result in results:
-            if body:
-                if len(body.text) < len(result.text):
-                    body = result
+        for curr in candidates:
+            if curr:
+                if len(curr.text) < len(best.text):
+                    best = curr
             else:
-                body = result
-
-        return body.decode_contents()
-
+                best = curr
+        return best.decode_contents()
     raise BodyNotFoundError
+
+
+def extract_body(html: str) - str:
+    """Extracts body from html."""
+    candidates = extract_candidates_for_body(html)
+    return choose_best_candidate_for_body(candidates)
 
 
 def clean_body(html):
