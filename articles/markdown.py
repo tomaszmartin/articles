@@ -72,7 +72,7 @@ class Converter:
         for child in node.children:
             child_content = self.convert(child)
             node.content += child_content
-        result = self.convert_node(node)
+        result = self._convert_single_node(node)
         return result
 
 

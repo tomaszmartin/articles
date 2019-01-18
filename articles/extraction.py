@@ -2,6 +2,9 @@
 import re
 from bs4 import BeautifulSoup
 from articles.errors import BodyNotFoundError, HeaderNotFoundError
+from articles import markdown
+import argparse
+import requests
 
 FLAGS = re.MULTILINE | re.IGNORECASE | re.DOTALL
 
@@ -38,10 +41,18 @@ def extract_body(html):
         bodies = soup.select(selector)
         for body in bodies:
             if body:
-                results.append(body.decode_contents())
+                results.append(body)
+    body = None
     if results:
-        # Take the longest result
-        return max(results, key=len)
+        # Take the longest result based on natural text length
+        for result in results:
+            if body:
+                if len(body.text) < len(result.text):
+                    body = result
+            else:
+                body = result
+    
+        return body.decode_contents()
 
     raise BodyNotFoundError
 
@@ -49,12 +60,23 @@ def extract_body(html):
 def clean_body(html):
     """Cleans html body from unneccesary elements."""
     soup = BeautifulSoup(html, 'html.parser')
-    to_remove = ['div[class*="footer"]', 'div[class*="social-container"]',
-                 'div[class*="Left"]', 'div[class*="Share"]',
-                 'aside', 'nav', 'footer', 'div[class*="embed"]',
-                 'div[class*="crumb"]', 'div[class*="sharing"]',
-                 'div[class*="related"]', 'div[class*="comments"]',
-                 'div[class*="widget"]', 'div[class*="meta"]']
+    # Set of tags that should be removed
+    to_remove = [
+        'nav', 
+        'aside', 
+        'footer',
+        'div[class*="footer"]', 
+        'div[class*="social-container"]',
+        'div[class*="Left"]', 
+        'div[class*="Share"]',
+        'div[class*="embed"]',
+        'div[class*="crumb"]', 
+        'div[class*="sharing"]',
+        'div[class*="related"]', 
+        'div[class*="comments"]',
+        'div[class*="widget"]', 
+        'div[class*="meta"]'
+    ]
     for selector in to_remove:
         for item in soup.select(selector):
             item.decompose()
