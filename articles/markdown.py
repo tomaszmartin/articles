@@ -150,11 +150,14 @@ class Node:
         return text
 
 
-class Markdown:
-    """Converting html text into markdown."""
-
-    def __init__(self, html):
-        parser = Parser()
-        parser.feed(html)
-        self.tree = parser.root.build_tree()
-        self.content = Converter().convert(parser.root)
+def from_html(html: str) -> str:
+    """
+    Converts html text into markdown.
+    :param html: html string
+    :return: markdown string
+    """
+    parser = Parser()
+    parser.feed(html)
+    tree = parser.root.build_tree()
+    md = Converter().convert(parser.root)
+    return md

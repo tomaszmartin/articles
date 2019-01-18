@@ -11,5 +11,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
     html = requests.get(args.url).content
     head, body = extract_article(html)
-    md = markdown.Markdown(body).content
+    md = markdown.from_html(body)
     print(md)

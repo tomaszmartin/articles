@@ -3,8 +3,7 @@ import re
 from bs4 import BeautifulSoup
 from articles.errors import BodyNotFoundError, HeaderNotFoundError
 from articles import markdown
-import argparse
-import requests
+
 
 FLAGS = re.MULTILINE | re.IGNORECASE | re.DOTALL
 
@@ -51,7 +50,7 @@ def extract_body(html):
                     body = result
             else:
                 body = result
-    
+
         return body.decode_contents()
 
     raise BodyNotFoundError
@@ -62,19 +61,19 @@ def clean_body(html):
     soup = BeautifulSoup(html, 'html.parser')
     # Set of tags that should be removed
     to_remove = [
-        'nav', 
-        'aside', 
+        'nav',
+        'aside',
         'footer',
-        'div[class*="footer"]', 
+        'div[class*="footer"]',
         'div[class*="social-container"]',
-        'div[class*="Left"]', 
+        'div[class*="Left"]',
         'div[class*="Share"]',
         'div[class*="embed"]',
-        'div[class*="crumb"]', 
+        'div[class*="crumb"]',
         'div[class*="sharing"]',
-        'div[class*="related"]', 
+        'div[class*="related"]',
         'div[class*="comments"]',
-        'div[class*="widget"]', 
+        'div[class*="widget"]',
         'div[class*="meta"]'
     ]
     for selector in to_remove:
