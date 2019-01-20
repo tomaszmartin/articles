@@ -55,15 +55,16 @@ def choose_best_candidate_for_body(candidates):
         # Take the longest result based on natural text length
         for curr in candidates:
             if curr:
-                if len(curr.text) < len(best.text):
+                if not best:
                     best = curr
-            else:
-                best = curr
+                if len(curr.text) > len(best.text):
+                    best = curr
+        print(best)
         return best.decode_contents()
     raise BodyNotFoundError
 
 
-def extract_body(html: str) - str:
+def extract_body(html: str) -> str:
     """Extracts body from html."""
     candidates = extract_candidates_for_body(html)
     return choose_best_candidate_for_body(candidates)

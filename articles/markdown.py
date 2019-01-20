@@ -61,8 +61,9 @@ class Converter:
                 position = points.index(node) + 1
                 markdown = f'{position}. ' + '{data}\n'
         attrs = deepcopy(node.attrs)
-        attrs['data'] = node.content
-        formatted = f'{markdown.format(**attrs)}'
+        args = {'alt': '', 'data': node.content}
+        args.update(attrs)
+        formatted = f'{markdown.format(**args)}'
         # Strip new line with space
         formatted = re.sub(r'\n ', '\n', formatted)
         return formatted
