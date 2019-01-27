@@ -29,7 +29,7 @@ class Converter:
         'ins': '{data}',
         'del': '~~{data}~~',
         'a': '[{data}]({href})',
-        'img': '![{alt}]({src})',
+        'img': '![{alt}]({src})\n\n',
         'span': '{data}',
         'hr': '\n---\n\n',
         'th': '|{data}',
@@ -157,6 +157,8 @@ def from_html(html: str) -> str:
     :param html: html string
     :return: markdown string
     """
+    if not html:
+        raise TypeError("Cannot create markdown from empty html.")
     parser = Parser()
     parser.feed(html)
     tree = parser.root.build_tree()

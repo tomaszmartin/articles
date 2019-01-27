@@ -3,15 +3,17 @@ import re
 from bs4 import BeautifulSoup
 from articles.errors import BodyNotFoundError, HeaderNotFoundError
 from articles import markdown
+from typing import List
+from urllib.parse import urlparse
 
 
 FLAGS = re.MULTILINE | re.IGNORECASE | re.DOTALL
 
 
-def extract_article(html):
+def extract_article(html: str, url: str):
     """Extract the title and content from the web page."""
     head = extract_head(html)
-    body = extract_body(html)
+    body = extract_body(html, url)
     return head, body
 
 
@@ -28,7 +30,7 @@ def extract_head(html):
     raise HeaderNotFoundError
 
 
-def extract_candidates_for_body(html):
+def extract_candidates_for_body(html: str) -> List[str]:
     soup = BeautifulSoup(html, 'html.parser')
     selectors = [
         'article',
@@ -49,7 +51,8 @@ def extract_candidates_for_body(html):
                 candidates.append(body)
     return candidates
 
-def choose_best_candidate_for_body(candidates):
+
+def choose_best_candidate_for_body(candidates: List[str]) -> str:
     best = None
     if candidates:
         # Take the longest result based on natural text length
@@ -63,14 +66,38 @@ def choose_best_candidate_for_body(candidates):
     raise BodyNotFoundError
 
 
-def extract_body(html: str) -> str:
+def extract_body(html: str, url: str) -> str:
     """Extracts body from html."""
     candidates = extract_candidates_for_body(html)
     body = choose_best_candidate_for_body(candidates)
-    return clean_body(body)
+    body = clean_body(body)
+    return fix_relative_links(body, url)
 
 
-def clean_body(html):
+def fix_relative_links(html: str, url: str) -> str:
+    """
+    Fixes issue with relative links, replaces
+    '/index.html' with 'https://domain.com/index.html'
+    """
+    parsed_uri = urlparse(url)
+    domain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+    soup = BeautifulSoup(html, 'html.parser')
+    for a in soup.find_all('a'):
+        if is_relative(a['href']):
+            a['href'] = url + a['href']
+    for img in soup.find_all('img'):
+        if is_relative(img['src']):
+            img['src'] = domain + img['src']
+
+    return soup.decode_contents()
+
+
+def is_relative(url):
+    """Checks whether url is relative or not."""
+    return not bool(urlparse(url).netloc)
+
+
+def clean_body(html: str) -> str:
     """Cleans html body from unneccesary elements."""
     soup = BeautifulSoup(html, 'html.parser')
     # Set of tags that should be removed
