@@ -33,7 +33,9 @@ class Converter:
         'span': '{data}',
         'hr': '\n---\n\n',
         'th': '|{data}',
+        'table': '\n{data}\n\n',
         'thead': '{data}',
+        'tbody': '{data}',
         'tr': '\n{data}',
         'td': '|{data}',
         'br': '\n{data}',
@@ -43,12 +45,10 @@ class Converter:
         """Converts html node into markdown text."""
         markdown = self.ELEMENTS.get(node.name, '{data}')
         # Column separators after head
-        if node.name == 'thead':
-            for child in node.children:
-                if child.name == 'tr':
-                    cols = [c for c in child.children
-                            if c.name == 'th']
-                    markdown = '{data}\n' + (len(cols) * '|:-')
+        if node.name == 'tr':
+            cols = [col for col in node.children if col.name == 'th']
+            if cols:
+                markdown = '{data}\n' + (len(cols) * '|:-')
         # Inline code inside multiline code
         elif node.name == 'code':
             if node.parent.name == 'pre':

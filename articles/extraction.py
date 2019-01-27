@@ -59,7 +59,6 @@ def choose_best_candidate_for_body(candidates):
                     best = curr
                 if len(curr.text) > len(best.text):
                     best = curr
-        print(best)
         return best.decode_contents()
     raise BodyNotFoundError
 
@@ -67,7 +66,8 @@ def choose_best_candidate_for_body(candidates):
 def extract_body(html: str) -> str:
     """Extracts body from html."""
     candidates = extract_candidates_for_body(html)
-    return choose_best_candidate_for_body(candidates)
+    body = choose_best_candidate_for_body(candidates)
+    return clean_body(body)
 
 
 def clean_body(html):
@@ -78,6 +78,7 @@ def clean_body(html):
         'nav',
         'aside',
         'footer',
+        'div[class*="navigation"]',
         'div[class*="footer"]',
         'div[class*="social-container"]',
         'div[class*="Left"]',
