@@ -1,15 +1,18 @@
 from articles.errors import BodyNotFoundError, HeaderNotFoundError
 from articles import markdown
 from articles.extraction import extract_article
-import argparse
 import requests
+from flask import Flask, request, Response
+
+app = Flask(__name__)
+
+@app.route('/api/markdown', methods=['GET'])
+def hello():
+    url = request.args.get('url')
+    html = requests.get(url).text
+    head, body = extract_article(html, url)
+    md = markdown.from_html(body)
+    return Response(md, mimetype='text/plain')
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Convert web page into markdown article.')
-    parser.add_argument('--url', type=str, help='Url address of the web page.')
-
-    args = parser.parse_args()
-    html = requests.get(args.url).content
-    head, body = extract_article(html, args.url)
-    md = markdown.from_html(body)
-    print(md)
+    app.run(debug=True)

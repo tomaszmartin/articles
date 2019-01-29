@@ -83,7 +83,7 @@ def fix_relative_links(html: str, url: str) -> str:
     domain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
     soup = BeautifulSoup(html, 'html.parser')
     for a in soup.find_all('a'):
-        if is_relative(a['href']):
+        if 'href' in a and is_relative(a['href']):
             a['href'] = url + a['href']
     for img in soup.find_all('img'):
         if is_relative(img['src']):
@@ -105,6 +105,7 @@ def clean_body(html: str) -> str:
         'nav',
         'aside',
         'footer',
+        'table[class*="infobox"]',
         'div[class*="navigation"]',
         'div[class*="footer"]',
         'div[class*="social-container"]',
