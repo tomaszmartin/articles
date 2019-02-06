@@ -12,6 +12,7 @@ def hello():
     html = requests.get(url).text
     head, body = extract_article(html, url)
     md = markdown.from_html(body)
+    # return Response(body, mimetype='text/plain')
     return Response(md, mimetype='text/plain')
 
 if __name__ == '__main__':

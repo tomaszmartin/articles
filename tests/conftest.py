@@ -22,14 +22,16 @@ def sample_bodies():
     return bodies
 
 @pytest.fixture
-def sample_link():
-    return [
-        'https://pl.wikipedia.org/wiki/Python',
-        'https://realpython.com/python-type-checking/',
-        'https://use-the-index-luke.com/sql/preface',
-        'https://www.spidersweb.pl/2019/01/apple-abonament-na-gry-ipad-pro.html',
-        'https://antyweb.pl/apple-vod-konkurenta-nowosc/',
-        'https://www.cultofmac.com/603388/shark-tank-star-thinks-it-could-be-the-right-time-to-invest-in-apple/',
-        'https://9to5mac.com/2019/01/29/aapl-q1-earnings/',
-        'https://medium.com/s/story/if-you-only-read-a-few-books-in-2019-read-these-4533f41fe1d4',
-    ]
+def test_data():
+    links = {
+        'https://pl.wikipedia.org/wiki/Python': 'wiki.md',
+        'https://realpython.com/python-type-checking/': '',
+        'https://use-the-index-luke.com/sql/preface': '',
+        'https://www.spidersweb.pl/2019/01/apple-abonament-na-gry-ipad-pro.html': '',
+        'https://antyweb.pl/apple-vod-konkurenta-nowosc/': '',
+        'https://www.cultofmac.com/603388/shark-tank-star-thinks-it-could-be-the-right-time-to-invest-in-apple/': '',
+        'https://9to5mac.com/2019/01/29/aapl-q1-earnings/': '',
+        'https://medium.com/s/story/if-you-only-read-a-few-books-in-2019-read-these-4533f41fe1d4': '',
+        'https://www.theguardian.com/books/2019/jan/30/merchants-of-truth-by-jill-abramson-review': '',
+    }
+

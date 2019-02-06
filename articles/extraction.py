@@ -14,6 +14,7 @@ def extract_article(html: str, url: str):
     """Extract the title and content from the web page."""
     head = extract_head(html)
     body = extract_body(html, url)
+    print(body)
     return head, body
 
 
@@ -28,6 +29,36 @@ def extract_head(html):
                 return f'{head}'
 
     raise HeaderNotFoundError
+
+
+def extract_body(html: str, url: str) -> str:
+    """Extracts body from html."""
+    if known_website(url):
+        candidates = extract_body_from_known_website(html, url)
+    else:
+        candidates = extract_candidates_for_body(html)
+    body = choose_best_candidate_for_body(candidates)
+    body = clean_body(body)
+    return fix_relative_links(body, url)
+
+
+KNOWN_DOMAINS = {
+    'wikipedia.org': '.mw-parser-output',
+    'medium.com': '.elevate-container'
+}
+
+
+def known_website(url: str) -> str:
+    for domain, selector in KNOWN_DOMAINS.items():
+        if domain in url:
+            return True
+
+
+def extract_body_from_known_website(html: str, url: str) -> str:
+    for domain, selector in KNOWN_DOMAINS.items():
+        if domain in url:
+            soup = BeautifulSoup(html, 'html.parser')
+            return soup.select(selector)
 
 
 def extract_candidates_for_body(html: str) -> List[str]:
@@ -66,21 +97,13 @@ def choose_best_candidate_for_body(candidates: List[str]) -> str:
     raise BodyNotFoundError
 
 
-def extract_body(html: str, url: str) -> str:
-    """Extracts body from html."""
-    candidates = extract_candidates_for_body(html)
-    body = choose_best_candidate_for_body(candidates)
-    body = clean_body(body)
-    return fix_relative_links(body, url)
-
-
 def fix_relative_links(html: str, url: str) -> str:
     """
     Fixes issue with relative links, replaces
     '/index.html' with 'https://domain.com/index.html'
     """
     parsed_uri = urlparse(url)
-    domain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+    domain = '{uri.scheme}://{uri.netloc}'.format(uri=parsed_uri)
     soup = BeautifulSoup(html, 'html.parser')
     for a in soup.find_all('a'):
         if 'href' in a and is_relative(a['href']):
@@ -104,7 +127,10 @@ def clean_body(html: str) -> str:
     to_remove = [
         'nav',
         'aside',
+        'meta',
+        'ins',
         'footer',
+        'script',
         'table[class*="infobox"]',
         'div[class*="navigation"]',
         'div[class*="footer"]',
@@ -117,7 +143,15 @@ def clean_body(html: str) -> str:
         'div[class*="related"]',
         'div[class*="comments"]',
         'div[class*="widget"]',
-        'div[class*="meta"]'
+        'div[class*="meta"]',
+        'div[class*="noprint"]',
+        'div[class*="nav"]',
+        'div[id*="nav"]',
+        'table[class*="nav"]',
+        'span[class*="mw-editsection"]',
+        'div[id*="author"]',
+        'div[class*="author"]',
+        'span[class*="dsq-postid"]'
     ]
     for selector in to_remove:
         for item in soup.select(selector):

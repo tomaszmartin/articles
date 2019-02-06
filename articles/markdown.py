@@ -14,7 +14,7 @@ class Converter:
         'h4': '#### {data}\n\n',
         'h5': '##### {data}\n\n',
         'h6': '###### {data}\n\n',
-        'ul': '\n{data}',
+        'ul': '\n{data}\n',
         'ol': '\n{data}',
         'li': '- {data}\n',
         'i': '*{data}*',
@@ -39,11 +39,14 @@ class Converter:
         'tr': '\n{data}',
         'td': '|{data}',
         'br': '\n{data}',
+        'div': '{data}\n',
     }
 
     def _convert_single_node(self, node):
         """Converts html node into markdown text."""
         markdown = self.ELEMENTS.get(node.name, '{data}')
+        if node.name == 'a':
+            node.content = re.sub(r'\n', '', node.content)
         # Column separators after head
         if node.name == 'tr':
             cols = [col for col in node.children if col.name == 'th']
@@ -66,6 +69,8 @@ class Converter:
         formatted = f'{markdown.format(**args)}'
         # Strip new line with space
         formatted = re.sub(r'\n ', '\n', formatted)
+        if formatted.isspace():
+            return ''
         return formatted
 
     def convert(self, node):
