@@ -44,12 +44,11 @@ def extract_body(html: str, url: str) -> str:
 
 KNOWN_DOMAINS = {
     'wikipedia.org': '.mw-parser-output',
-    'medium.com': '.elevate-container'
 }
 
 
 def known_website(url: str) -> str:
-    for domain, selector in KNOWN_DOMAINS.items():
+    for domain in KNOWN_DOMAINS:
         if domain in url:
             return True
 
@@ -72,7 +71,7 @@ def extract_candidates_for_body(html: str) -> List[str]:
         'div[class*="post-body"]',
         'div[class*="container"]',
         'div[itemprop*="articleBody"]',
-        'div[class*="content"]'
+        'div[class*="content"]',
     ]
     candidates = []
     for selector in selectors:
@@ -80,6 +79,8 @@ def extract_candidates_for_body(html: str) -> List[str]:
         for body in bodies:
             if body:
                 candidates.append(body)
+    if not candidates:
+        candidates.append(soup.select('body'))
     return candidates
 
 

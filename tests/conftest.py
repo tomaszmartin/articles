@@ -23,7 +23,7 @@ def sample_bodies():
 
 @pytest.fixture
 def test_data():
-    links = {
+    return {
         'https://pl.wikipedia.org/wiki/Python': 'wiki.md',
         'https://realpython.com/python-type-checking/': '',
         'https://use-the-index-luke.com/sql/preface': '',
@@ -33,5 +33,7 @@ def test_data():
         'https://9to5mac.com/2019/01/29/aapl-q1-earnings/': '',
         'https://medium.com/s/story/if-you-only-read-a-few-books-in-2019-read-these-4533f41fe1d4': '',
         'https://www.theguardian.com/books/2019/jan/30/merchants-of-truth-by-jill-abramson-review': '',
+        'https://adityasridhar.com/posts/what-is-graphql-and-how-to-use-it': '',
+        'http://cristal.inria.fr/~weis/info/commandline.html': '',
     }
 

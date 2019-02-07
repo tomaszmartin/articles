@@ -1,6 +1,6 @@
 from articles.errors import BodyNotFoundError, HeaderNotFoundError
 from articles import markdown
-from articles.extraction import extract_article
+from articles.extraction import extract_body
 import requests
 from flask import Flask, request, Response
 
@@ -10,7 +10,7 @@ app = Flask(__name__)
 def hello():
     url = request.args.get('url')
     html = requests.get(url).text
-    head, body = extract_article(html, url)
+    body = extract_body(html, url)
     md = markdown.from_html(body)
     # return Response(body, mimetype='text/plain')
     return Response(md, mimetype='text/plain')
