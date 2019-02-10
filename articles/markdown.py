@@ -1,11 +1,15 @@
-"""Creating markdown text from raw html"""
+"""
+Creating markdown text from raw html.
+"""
 from copy import deepcopy
 from html.parser import HTMLParser
 import re
 
 
 class Converter:
-    """Responsible for converting html nodes into markdown"""
+    """
+    Responsible for converting html into markdown.
+    """
 
     ELEMENTS = {
         'h1': '# {data}\n\n',
@@ -43,7 +47,9 @@ class Converter:
     }
 
     def _convert_single_node(self, node):
-        """Converts html node into markdown text."""
+        """
+        Converts single html node into markdown text.
+        """
         markdown = self.ELEMENTS.get(node.name, '{data}')
         if node.name == 'a':
             node.content = re.sub(r'\n', '', node.content)
@@ -64,17 +70,30 @@ class Converter:
                 position = points.index(node) + 1
                 markdown = f'{position}. ' + '{data}\n'
         attrs = deepcopy(node.attrs)
-        args = {'href': '', 'data': node.content}
+        args = {'data': node.content, 'href': '', 'src': ''}
         args.update(attrs)
+        # TODO: What if node has some data but not all of it
         formatted = f'{markdown.format(**args)}'
-        # Strip new line with space to just newline
-        formatted = re.sub(r'\n ', '\n', formatted)
-        # Replace more than two newlines with single one
-        formatted = re.sub(r'\n\n+', '\n\n', formatted)
-        return formatted
+        if self._contains_information(node, formatted):
+            # Strip new line with space to just newline
+            formatted = re.sub(r'\n ', '\n', formatted)
+            # Replace more than two newlines with single one
+            formatted = re.sub(r'\n\n+', '\n\n', formatted)
+            return formatted
+        else:
+            return ''
+
+    def _contains_information(self, node, formatted):
+        markdown = self.ELEMENTS.get(node.name, '{data}')
+        args = {'data': '', 'href': '', 'src': ''}
+        empty = f'{markdown.format(**args)}'
+        return empty != formatted
+
 
     def convert(self, node):
-        """Returns html node as markdown"""
+        """
+        Returns html node as markdown.
+        """
         for child in node.children:
             child_content = self.convert(child)
             node.content += child_content
@@ -90,16 +109,10 @@ class Parser(HTMLParser):
         self.root = Node('html', {})
         self.open_tags = [self.root]
 
-    def remove_whitespace(self, data):
-        spaces = re.compile(r' +', re.M)
-        newlines = re.compile(r'\n+', re.M)
-
-        stripped = re.sub(spaces, ' ', data)
-        stripped = re.sub(newlines, '', stripped)
-        return stripped
-
     def handle_starttag(self, tag, attrs):
-        """Handle tag beginning."""
+        """
+        Handle opening tag.
+        """
         current_node = Node(tag, dict(attrs))
         try:
             self.open_tags[-1].add_child(current_node)
@@ -109,19 +122,34 @@ class Parser(HTMLParser):
         self.open_tags.append(current_node)
 
     def handle_data(self, data):
-        """Handle tag data."""
+        """
+        Handle tag data.
+        """
         # When documents starts with pure text
         current_node = Node('span', {})
         if data:
-            stripped = self.remove_whitespace(data)
+            stripped = self._remove_whitespace(data)
             current_node.content += stripped
         self.open_tags[-1].add_child(current_node)
 
     def handle_endtag(self, tag):
-        """Handle tag end."""
+        """
+        Handle closing tag.
+        """
         if self.open_tags:
             if self.open_tags[-1].name == tag:
                 self.open_tags.pop()
+    
+    def _remove_whitespace(self, data):
+        """
+        Removes multiple whitespace from data.
+        """
+        spaces = re.compile(r' +', re.M)
+        newlines = re.compile(r'\n+', re.M)
+
+        stripped = re.sub(spaces, ' ', data)
+        stripped = re.sub(newlines, '', stripped)
+        return stripped
 
 
 class Node:
@@ -140,13 +168,17 @@ class Node:
         return f"{self.name} ({attrs})"
 
     def add_child(self, child):
-        """Adds a child for."""
+        """
+        Adds a child to the node.
+        """
         self.children.append(child)
         child.level += self.level + 1
         child.parent = self
 
     def build_tree(self, node=None):
-        """Builds tree for inspecting nodes tree."""
+        """
+        Builds document tree for easy inspecting.
+        """
         if not node:
             node = self
         indentation = '\t' * node.level
@@ -166,6 +198,5 @@ def from_html(html: str) -> str:
         raise TypeError("Cannot create markdown from empty html.")
     parser = Parser()
     parser.feed(html)
-    tree = parser.root.build_tree()
     md = Converter().convert(parser.root)
     return md
