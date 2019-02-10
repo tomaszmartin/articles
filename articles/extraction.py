@@ -14,7 +14,6 @@ def extract_article(html: str, url: str):
     """Extract the title and content from the web page."""
     head = extract_head(html)
     body = extract_body(html, url)
-    print(body)
     return head, body
 
 
@@ -37,6 +36,9 @@ def extract_body(html: str, url: str) -> str:
         candidates = extract_body_from_known_website(html, url)
     else:
         candidates = extract_candidates_for_body(html)
+    print(candidates)
+    if not candidates:
+        raise BodyNotFoundError
     body = choose_best_candidate_for_body(candidates)
     body = clean_body(body)
     return fix_relative_links(body, url)
@@ -80,7 +82,10 @@ def extract_candidates_for_body(html: str) -> List[str]:
             if body:
                 candidates.append(body)
     if not candidates:
-        candidates.append(soup.select('body'))
+        bodies = soup.select('body')
+        for boyd in bodies:
+            if body:
+                candidates.append(boyd)
     return candidates
 
 

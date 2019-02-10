@@ -7,7 +7,7 @@ def test_markdown_image():
            'data-pagespeed-url-hash=2676138789 ' \
            'onload="pagespeed()"/>'
     result = markdown.from_html(html)
-    md = '![iPhone XS](https://ocs-pl.oktawave.com/iphone.jpg)'
+    md = '![](https://ocs-pl.oktawave.com/iphone.jpg)\n\n'
     assert result == md
 
 
@@ -18,14 +18,14 @@ def test_markdown_image_with_params():
            'src="https://cdn.cultofmac.com/Screen-Shot.jpg" ' \
            'title="5 reasons we expect an Apple October press event"/>'
     result = markdown.from_html(html)
-    md = '![Screen Shot](https://cdn.cultofmac.com/Screen-Shot.jpg)'
+    md = '![](https://cdn.cultofmac.com/Screen-Shot.jpg)\n\n'
     assert result == md
 
 
 def test_markdown_image_no_domain():
     html = '<img src="/img.jpg" alt="text"/>'
     result = markdown.from_html(html)
-    md = '![text](/img.jpg)'
+    md = '![](/img.jpg)\n\n'
     assert result == md
 
 
@@ -33,8 +33,9 @@ def test_markdown_two_images():
     html = '<img src="/1.jpg" alt="text1"/><br>' \
            '<img src="https://sample.org/2.jpg" alt="text2"/>'
     result = markdown.from_html(html)
-    md = '![text1](/1.jpg)\n' \
-         '![text2](https://sample.org/2.jpg)'
+    md = '![](/1.jpg)\n\n' \
+         '![](https://sample.org/2.jpg)\n\n'
+    print(md)
     assert result == md
 
 
@@ -72,14 +73,14 @@ def test_markdown_links():
 def test_bold():
     html = '<div>sample <b>bold</b> <strong> again </strong></div>'
     result = markdown.from_html(html)
-    md = 'sample **bold** ** again **'
+    md = 'sample **bold** ** again **\n'
     assert result == md
 
 
 def test_italic():
     html = '<div>sample <i>bold</i> <em> again </em></div>'
     result = markdown.from_html(html)
-    md = 'sample *bold* * again *'
+    md = 'sample *bold* * again *\n'
     assert result == md
 
 
@@ -107,14 +108,14 @@ def test_markdown_second_header():
 def test_markdown_unordered_lists():
     html = '<ul>\n<li>1</li>\n<li>2</li>\n<li>3</li>\n</ul>'
     actual = markdown.from_html(html)
-    expected = '\n- 1\n- 2\n- 3\n'
+    expected = '\n- 1\n- 2\n- 3\n\n'
     assert expected == actual
 
 
 def test_markdown_ordered_lists():
     html = '<ol>\n<li>1</li>\n<li>2</li>\n<li>3</li>\n</ol>'
     actual = markdown.from_html(html)
-    expected = '\n1. 1\n2. 2\n3. 3\n'
+    expected = '\n1. 1\n2. 2\n3. 3\n\n'
     assert expected == actual
 
 
@@ -130,7 +131,7 @@ def test_full_markdown(sample_html):
                '- **Bold list**\n' \
                '- Regular list\n' \
                '\n' \
-               '![text](https://sample.com/img.jpg)\n' \
+               '![](https://sample.com/img.jpg)\n\n' \
                '[link](/)\n'
 
     assert expected == actual
@@ -139,6 +140,6 @@ def test_full_markdown(sample_html):
 def test_link_with_img():
     html = '<a href="https://x.com/wtf" itemprop="name">' \
            '<img alt="Author" src="https://x.com/wtf.jpg">Autor</a>'
-    expected = '[![Author](https://x.com/wtf.jpg)](https://x.com/wtf)'
+    expected = '[![](https://x.com/wtf.jpg)](https://x.com/wtf)'
     actual = markdown.from_html(html)
     assert expected == actual

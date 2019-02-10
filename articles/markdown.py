@@ -15,7 +15,7 @@ class Converter:
         'h5': '##### {data}\n\n',
         'h6': '###### {data}\n\n',
         'ul': '\n{data}\n',
-        'ol': '\n{data}',
+        'ol': '\n{data}\n',
         'li': '- {data}\n',
         'i': '*{data}*',
         'em': '*{data}*',
@@ -29,7 +29,7 @@ class Converter:
         'ins': '{data}',
         'del': '~~{data}~~',
         'a': '[{data}]({href})',
-        'img': '![{alt}]({src})\n\n',
+        'img': '![]({src})\n\n',
         'span': '{data}',
         'hr': '\n---\n\n',
         'th': '|{data}',
@@ -64,13 +64,13 @@ class Converter:
                 position = points.index(node) + 1
                 markdown = f'{position}. ' + '{data}\n'
         attrs = deepcopy(node.attrs)
-        args = {'alt': '', 'href': '', 'data': node.content}
+        args = {'href': '', 'data': node.content}
         args.update(attrs)
         formatted = f'{markdown.format(**args)}'
-        # Strip new line with space
+        # Strip new line with space to just newline
         formatted = re.sub(r'\n ', '\n', formatted)
-        if formatted.isspace():
-            return ''
+        # Replace more than two newlines with single one
+        formatted = re.sub(r'\n\n+', '\n\n', formatted)
         return formatted
 
     def convert(self, node):
