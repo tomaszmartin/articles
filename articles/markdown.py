@@ -169,7 +169,7 @@ class Converter:
         attrs = deepcopy(node.attrs)
         args = {'data': node.content, 'href': '', 'src': ''}
         args.update(attrs)
-        # TODO: What if node has some data but not all of it
+        # What if node has some data but not all of it
         formatted = f'{markdown.format(**args)}'
         if self._contains_information(node, formatted):
             if node.name != 'pre':
@@ -178,8 +178,7 @@ class Converter:
                 # Replace more than two newlines with single one
                 formatted = re.sub(r'\n\n+', '\n\n', formatted)
             return formatted
-        else:
-            return ''
+        return ''
 
     def _contains_information(self, node, formatted):
         if node.name == 'br':
@@ -203,11 +202,7 @@ class Parser(HTMLParser):
         Handle opening tag.
         """
         current_node = Node(tag, dict(attrs))
-        try:
-            self.open_tags[-1].add_child(current_node)
-        except Exception as e:
-            print(self.open_tags)
-            raise e
+        self.open_tags[-1].add_child(current_node)
         self.open_tags.append(current_node)
 
     def handle_data(self, data):
@@ -228,8 +223,9 @@ class Parser(HTMLParser):
         if self.open_tags:
             if self.open_tags[-1].name == tag:
                 self.open_tags.pop()
-    
-    def _remove_whitespace(self, data):
+
+    @staticmethod
+    def _remove_whitespace(data):
         """
         Removes multiple whitespace from data.
         """

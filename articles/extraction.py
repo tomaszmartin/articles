@@ -2,7 +2,6 @@
 import re
 from bs4 import BeautifulSoup
 from articles.errors import BodyNotFoundError, HeaderNotFoundError
-from articles import markdown
 from typing import List
 from urllib.parse import urlparse
 
