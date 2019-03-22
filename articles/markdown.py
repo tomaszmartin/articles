@@ -133,6 +133,16 @@ class Converter:
         'wbr': '{data}',
     }
 
+    def convert(self, node):
+        """
+        Returns html node as markdown.
+        """
+        for child in node.children:
+            child_content = self.convert(child)
+            node.content += child_content
+        result = self._convert_single_node(node)
+        return result
+
     def _convert_single_node(self, node):
         """
         Converts single html node into markdown text.
@@ -162,10 +172,11 @@ class Converter:
         # TODO: What if node has some data but not all of it
         formatted = f'{markdown.format(**args)}'
         if self._contains_information(node, formatted):
-            # Strip new line with space to just newline
-            formatted = re.sub(r'\n ', '\n', formatted)
-            # Replace more than two newlines with single one
-            formatted = re.sub(r'\n\n+', '\n\n', formatted)
+            if node.name != 'pre':
+                # Strip new line with space to just newline
+                formatted = re.sub(r'\n ', '\n', formatted)
+                # Replace more than two newlines with single one
+                formatted = re.sub(r'\n\n+', '\n\n', formatted)
             return formatted
         else:
             return ''
@@ -177,17 +188,6 @@ class Converter:
         args = {'data': '', 'href': '', 'src': ''}
         empty = f'{markdown.format(**args)}'
         return empty != formatted
-
-
-    def convert(self, node):
-        """
-        Returns html node as markdown.
-        """
-        for child in node.children:
-            child_content = self.convert(child)
-            node.content += child_content
-        result = self._convert_single_node(node)
-        return result
 
 
 class Parser(HTMLParser):
@@ -284,7 +284,7 @@ def from_html(html: str) -> str:
     :return: markdown string
     """
     if not html:
-        raise TypeError("Cannot create markdown from empty html.")
+        raise ValueError("Cannot create markdown from empty html.")
     parser = Parser()
     parser.feed(html)
     md = Converter().convert(parser.root)
